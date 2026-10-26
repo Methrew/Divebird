@@ -1,6 +1,6 @@
 [project]
 name = "divebird"
-version = "1.2.1"
+version = "1.2.2"
 description = "跨平台下載管理員（類 IDM），支援多連線分段下載、續傳與 Chrome 擴充功能影片偵測"
 readme = "README.md"
 license = "MIT"
