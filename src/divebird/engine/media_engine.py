@@ -19,6 +19,14 @@ from .tools import deno_path, ensure_executable, ffmpeg_path
 AUDIO_MP3 = "audio:mp3"
 AUDIO_BEST = "audio:best"
 MANIFEST_EXTS = (".m3u8", ".mpd")
+# 一定是一般檔案的副檔名：影音網站的圖床（例如 i.imgur.com/xxx.png）也會被 yt-dlp 的解析器認領，
+# 但 yt-dlp 只處理影片，靜態圖片會失敗（「… is not a video or animated image」），要直接下載
+PLAIN_FILE_EXTS = (
+    ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".avif", ".heic", ".heif", ".jxl", ".svg", ".tif", ".tiff",
+    ".ico", ".pdf", ".txt", ".csv", ".json", ".xml", ".doc", ".docx", ".xls", ".xlsx", ".ppt", ".pptx", ".epub",
+    ".zip", ".rar", ".7z", ".tar", ".gz", ".tgz", ".bz2", ".xz", ".zst", ".iso", ".dmg", ".exe", ".msi", ".apk",
+    ".deb", ".rpm", ".appimage",
+)
 
 
 class _Logger:
@@ -46,7 +54,10 @@ def _site_extractors():
 
 
 def is_media_site(url: str) -> bool:
-    """網址是否屬於 yt-dlp 有專屬解析器的影音網站（YouTube、Bilibili…）。"""
+    """網址是否屬於 yt-dlp 有專屬解析器的影音網站（YouTube、Bilibili…）。圖片、文件等一般檔案除外。"""
+    path = url.split("?", 1)[0].split("#", 1)[0].lower()
+    if path.endswith(PLAIN_FILE_EXTS):
+        return False
     try:
         return any(ie.suitable(url) for ie in _site_extractors())
     except Exception:  # noqa: BLE001

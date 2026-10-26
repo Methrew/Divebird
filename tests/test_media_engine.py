@@ -35,6 +35,12 @@ def test_site_detection():
     assert is_media_site("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
     assert is_media_site("https://www.bilibili.com/video/BV1GJ411x7h7")
     assert not is_media_site("https://example.com/files/video.mp4")
+    # 影音網站的圖床：yt-dlp 的 imgur 解析器會認領，但靜態圖片要直接下載
+    assert is_media_site("https://imgur.com/Q1B0UKR") and is_media_site("https://i.imgur.com/Q1B0UKR.gifv")
+    for url in ("https://i.imgur.com/Q1B0UKR.png", "https://i.imgur.com/zDkk9sV.JPG?1", "https://i.imgur.com/a.webp"):
+        assert not is_media_site(url), url
+    from divebird.intake import task_from_payload
+    assert task_from_payload({"url": "https://i.imgur.com/Q1B0UKR.png"}, Settings()).kind == Kind.HTTP
     assert is_manifest_url("https://cdn.example.com/live/master.m3u8?token=1")
     assert is_manifest_url("https://cdn.example.com/a/manifest.mpd")
     assert not is_manifest_url("https://cdn.example.com/a/video.mp4")

@@ -389,7 +389,8 @@ async function interceptDownload(item, suggest) {
   try {
     const tabs = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
     await sendToApp(
-      { url, kind: "auto", referer: item.referrer, pageUrl: item.referrer, source: "intercept" },
+      // 瀏覽器本身要下載的就是檔案：不必再判斷是不是影音網站（播放清單檔 Divebird 會自動改用影音引擎）
+      { url, kind: "http", referer: item.referrer, pageUrl: item.referrer, source: "intercept" },
       tabs[0]
     );
   } catch {
