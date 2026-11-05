@@ -9,6 +9,7 @@ import time
 from functools import lru_cache
 from pathlib import Path
 from typing import Callable
+from urllib.parse import urlsplit
 
 from ..config import Settings
 from ..models import Status, Task
@@ -27,6 +28,15 @@ PLAIN_FILE_EXTS = (
     ".zip", ".rar", ".7z", ".tar", ".gz", ".tgz", ".bz2", ".xz", ".zst", ".iso", ".dmg", ".exe", ".msi", ".apk",
     ".deb", ".rpm", ".appimage",
 )
+# 這些網站的 CDN 會拒絕不帶 Range 的請求：Bilibili 的 upos-sz-mirrorcosov.bilivideo.com 回 HTTP 567
+# （yt-dlp #17847）。分段下載讓每個請求都帶 Range
+RANGE_ONLY_SITES = ("bilibili.com", "b23.tv")
+RANGE_CHUNK = 10 * 1024 * 1024
+
+
+def needs_range_requests(url: str) -> bool:
+    host = (urlsplit(url).hostname or "").lower()
+    return any(host == s or host.endswith("." + s) for s in RANGE_ONLY_SITES)
 
 
 class _Logger:
@@ -88,6 +98,8 @@ def _base_opts(task: Task, settings: Settings, workdir: Path) -> dict:
         "windowsfilenames": True,
         "logger": _Logger(),
     }
+    if needs_range_requests(task.url) or needs_range_requests(task.page_url or ""):
+        opts["http_chunk_size"] = RANGE_CHUNK
     if task.cookies:
         cookiefile = workdir / "cookies.txt"
         write_netscape_cookies(task.cookies, cookiefile)

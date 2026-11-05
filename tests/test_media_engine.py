@@ -62,6 +62,30 @@ def hls_server(server, tmp_path):
     return server
 
 
+def test_range_only_sites_are_downloaded_in_chunks(server, tmp_path):
+    """Bilibili 的 CDN 不接受沒有 Range 的請求（HTTP 567）：從這些網站下載時，每個請求都要帶 Range。"""
+    from divebird.engine.media_engine import _base_opts, needs_range_requests
+
+    assert needs_range_requests("https://www.bilibili.com/video/BV1kbxD61EjQ/?vd_source=1")
+    assert needs_range_requests("https://b23.tv/abc") and needs_range_requests("https://m.bilibili.com/video/x")
+    assert not needs_range_requests("https://notbilibili.com/x") and not needs_range_requests("https://youtu.be/x")
+    youtube = _base_opts(Task(url="https://www.youtube.com/watch?v=x", kind=Kind.MEDIA), Settings(), tmp_path)
+    assert "http_chunk_size" not in youtube
+
+    import yt_dlp
+
+    # 解析網頁之後的實際下載：影音檔放在只接受 Range 的 CDN 上（就像 Bilibili 的 .m4s 串流）
+    data = server.add("/video.m4s", 3 * 1024 * 1024)
+    server.require_range = True
+    opts = _base_opts(Task(url="https://www.bilibili.com/video/BV1kbxD61EjQ/", kind=Kind.MEDIA), Settings(), tmp_path)
+    opts["outtmpl"] = str(tmp_path / "clip.%(ext)s")
+    with yt_dlp.YoutubeDL(opts) as ydl:
+        ydl.process_ie_result({"id": "clip", "title": "clip", "ext": "mp4", "url": server.url("/video.m4s")},
+                              download=True)
+    assert (tmp_path / "clip.mp4").read_bytes() == data
+    assert server.requests and all(rng for _name, rng in server.requests)
+
+
 def test_title_comes_from_video_not_temp_file(tmp_path):
     """影像與聲音分開下載時，暫存檔名帶有格式代碼（標題.f278.webm）：標題要用影片本身的標題。"""
     task = Task(url="https://example.com/watch?v=1", kind=Kind.MEDIA, save_dir=str(tmp_path))

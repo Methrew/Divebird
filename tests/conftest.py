@@ -19,6 +19,7 @@ class FileServer:
         self.content_disposition: str | None = None
         self.content_types: dict[str, str] = {}     # 個別檔案的 Content-Type（預設 application/octet-stream）
         self.max_conns: int | None = None    # 模擬限制同時連線數的伺服器：超過就回 503
+        self.require_range = False           # 模擬只接受 Range 請求的 CDN（例如 Bilibili）：沒有 Range 就回 567
         self.active = 0
         self.requests: list[tuple[str, str | None]] = []
         self.lock = threading.Lock()
@@ -38,6 +39,11 @@ class FileServer:
                     fs.active += 1
                     over = fs.max_conns is not None and fs.active > fs.max_conns
                 try:
+                    if fs.require_range and not rng:
+                        self.send_response(567)
+                        self.send_header("Content-Length", "0")
+                        self.end_headers()
+                        return
                     if over:
                         self.send_response(503)
                         self.send_header("Content-Length", "0")
