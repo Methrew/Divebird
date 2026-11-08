@@ -252,7 +252,10 @@ def main():
 
     # Divebird：乾淨的設定目錄
     appdata = work / "appdata"
-    cfg_dir = appdata / ("Divebird" if os.name == "nt" else "divebird")
+    if sys.platform == "darwin":     # macOS 的設定資料夾在家目錄底下：以 HOME 導到暫存目錄
+        cfg_dir = appdata / "Library" / "Application Support" / "Divebird"
+    else:
+        cfg_dir = appdata / ("Divebird" if os.name == "nt" else "divebird")
     cfg_dir.mkdir(parents=True)
     dl_dir = work / "downloads"
     (cfg_dir / "settings.json").write_text(json.dumps({
@@ -260,6 +263,8 @@ def main():
         "mcp_enabled": True, "mcp_confirm": "never", "mcp_allow_private": True, "mcp_share_browser_media": True,
     }), encoding="utf-8")
     env = dict(os.environ, APPDATA=str(appdata), XDG_CONFIG_HOME=str(appdata), QT_QPA_PLATFORM="offscreen")
+    if sys.platform == "darwin":
+        env["HOME"] = str(appdata)
     cmd = [str(Path(args.app).resolve())] if args.app else [str(VENV_PY), "-m", "divebird"]
     app = subprocess.Popen(cmd, env=env, cwd=str(ROOT))
     results: dict[str, bool] = {}

@@ -1,8 +1,10 @@
 """下載佇列管理：排程、暫停 / 續傳、持久化。與 GUI 無關，可單獨使用或測試。"""
 from __future__ import annotations
 
+import errno
 import json
 import os
+import sys
 import threading
 import time
 from pathlib import Path
@@ -11,6 +13,7 @@ from typing import Protocol
 import requests
 
 from ..config import Settings, data_dir
+from ..macos import mark_quarantine
 from ..models import Kind, Status, Task
 from ..utils import sanitize_filename
 from .http_engine import DownloadError, HttpDownloader, ManifestDetected, RateLimiter
@@ -31,6 +34,11 @@ class _NullListener:
     def task_finished(self, task): pass
 
 
+# macOS 拒絕存取「下載項目」等受保護的資料夾時（使用者在系統詢問時按了「不允許」），錯誤是 EPERM
+MAC_FOLDER_HINT = ("（macOS 不允許 Divebird 存取這個資料夾：請到「系統設定 → 隱私權與安全性 → 檔案和檔案夾」"
+                   "允許 Divebird，或在設定中改用其他下載資料夾）")
+
+
 def friendly_error(e: Exception) -> str:
     if isinstance(e, requests.HTTPError) and e.response is not None:
         code = e.response.status_code
@@ -42,9 +50,11 @@ def friendly_error(e: Exception) -> str:
     if isinstance(e, requests.Timeout):
         return "連線逾時"
     if isinstance(e, DownloadError):
-        return str(e)
+        msg = str(e)        # 影音引擎的錯誤是 yt-dlp 的訊息，存取被拒時含「[Errno 1]」
+        return msg + MAC_FOLDER_HINT if sys.platform == "darwin" and "[Errno 1]" in msg else msg
     if isinstance(e, OSError):
-        return f"檔案錯誤：{e.strerror or e}"
+        msg = f"檔案錯誤：{e.strerror or e}"
+        return msg + MAC_FOLDER_HINT if sys.platform == "darwin" and e.errno == errno.EPERM else msg
     return f"{e.__class__.__name__}: {e}"
 
 
@@ -283,6 +293,10 @@ class DownloadManager:
         try:
             ok = runner.run()
             if ok:
+                # macOS：跟瀏覽器下載的檔案一樣加上隔離屬性，開啟時交給 Gatekeeper 檢查
+                # （在標示完成之前加上，使用者才不會搶先開啟還沒有隔離屬性的檔案）
+                if t.filename:
+                    mark_quarantine(t.filepath, t.url)
                 t.status = Status.COMPLETED
                 t.finished_at = time.time()
                 t.cookies, t.headers = [], {}     # 完成後不再保留登入資訊

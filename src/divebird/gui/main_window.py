@@ -3,12 +3,14 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from PySide6.QtCore import QSize, Qt, QTimer
-from PySide6.QtGui import QAction, QGuiApplication, QKeySequence
+from PySide6.QtGui import QAction, QGuiApplication, QKeySequence, QShortcut
 from PySide6.QtWidgets import (
-    QAbstractItemView, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
-    QMainWindow, QMenu, QSizePolicy, QSplitter, QStackedWidget, QTableView, QToolBar, QVBoxLayout, QWidget,
+    QAbstractItemView, QApplication, QHeaderView, QLabel, QLineEdit, QListWidget, QListWidgetItem,
+    QMainWindow, QMenu, QMenuBar, QSizePolicy, QSplitter, QStackedWidget, QTableView, QToolBar, QVBoxLayout,
+    QWidget,
 )
 
+from ..config import IS_MAC, TRAY_NAME
 from ..models import Status, Task
 from ..utils import human_size, open_path
 from . import icons
@@ -31,6 +33,7 @@ class MainWindow(QMainWindow):
         self._last_status: dict[str, str] = {}
         self._quitting = False
         self._tray_hint_shown = False
+        self._themed: list[tuple[QAction, str]] = []    # 工具列按鈕與圖示名稱：切換淺色／深色外觀時重新著色
 
         self.setWindowTitle("Divebird 下載管理員")
         self.setWindowIcon(icons.app_icon())
@@ -48,6 +51,8 @@ class MainWindow(QMainWindow):
         self._build_toolbar()
         self._build_body()
         self._build_statusbar()
+        if IS_MAC:
+            self._build_mac_menu()
 
         b = ctl.bridge
         b.added.connect(self._on_added)
@@ -74,6 +79,7 @@ class MainWindow(QMainWindow):
 
         def act(icon_name, text, slot, shortcut=None):
             a = QAction(self._ico(icon_name), text, self)
+            self._themed.append((a, icon_name))
             a.triggered.connect(slot)
             if shortcut:
                 a.setShortcut(QKeySequence(shortcut))
@@ -84,15 +90,15 @@ class MainWindow(QMainWindow):
         self.act_resume = act("play", "繼續", self.resume_selected)
         self.act_pause = act("pause", "暫停", self.pause_selected)
         tb.addSeparator()
-        act("play-all", "全部開始", self.ctl.manager.start_all)
-        act("pause-all", "全部暫停", self.ctl.manager.pause_all)
+        self.act_start_all = act("play-all", "全部開始", self.ctl.manager.start_all)
+        self.act_pause_all = act("pause-all", "全部暫停", self.ctl.manager.pause_all)
         tb.addSeparator()
         self.act_delete = act("trash", "刪除", self.delete_selected, QKeySequence.StandardKey.Delete)
         self.act_folder = act("folder", "開啟資料夾", self.open_folder)
         tb.addSeparator()
-        act("settings", "設定", self.open_settings)
-        act("info", "關於", self.open_about)
-        quit_act = QAction("結束", self)
+        self.act_settings = act("settings", "設定", self.open_settings)
+        self.act_about = act("info", "關於", self.open_about)
+        self.act_quit = quit_act = QAction("結束", self)
         quit_act.setShortcut(QKeySequence("Ctrl+Q"))
         quit_act.triggered.connect(self.ctl.quit)
         self.addAction(quit_act)
@@ -334,6 +340,66 @@ class MainWindow(QMainWindow):
         m.addAction(self._ico("trash"), "刪除…", self.delete_selected)
         m.exec(self.table.viewport().mapToGlobal(pos))
 
+    def _build_mac_menu(self):
+        """macOS：螢幕頂端的選單列。沒有父物件的選單列是全程式共用的：主視窗縮到選單列、只剩對話框時也有效。
+        標了角色的項目由 Qt 移到應用程式選單（Divebird）：關於 Divebird、偏好設定…（⌘,）、結束 Divebird（⌘Q）。
+        快捷鍵的 Ctrl 在 macOS 上就是 ⌘。共用選單列的快捷鍵不管哪個視窗在前面都會觸發，所以這裡只放
+        全程式通用的快捷鍵；操作主視窗選取項目的「下載」選單，用不帶快捷鍵的副本。"""
+        self.act_about.setMenuRole(QAction.MenuRole.AboutRole)
+        self.act_settings.setMenuRole(QAction.MenuRole.PreferencesRole)
+        self.act_settings.setShortcut(QKeySequence.StandardKey.Preferences)
+        self.act_quit.setMenuRole(QAction.MenuRole.QuitRole)
+        for a in (self.act_add, self.act_start_all, self.act_pause_all, self.act_folder, self.act_settings,
+                  self.act_about):
+            a.setIconVisibleInMenu(False)        # macOS 的選單項目習慣不帶圖示
+        close_act = QAction("關閉視窗", self)
+        close_act.setShortcut(QKeySequence.StandardKey.Close)
+        close_act.triggered.connect(self._close_active_window)
+
+        def menu_copy(src: QAction, text: str = "") -> QAction:
+            """不帶快捷鍵的副本，名稱、啟用狀態與動作跟著工具列的按鈕
+            （例如在「新增下載」視窗按 Delete，不會刪除主視窗裡選取的下載）。"""
+            a = QAction(text or src.text(), self)
+            a.setEnabled(src.isEnabled())
+            src.changed.connect(lambda: a.setEnabled(src.isEnabled()))
+            a.triggered.connect(src.trigger)
+            return a
+
+        self._menubar = bar = QMenuBar()
+        file_menu = bar.addMenu("檔案")
+        file_menu.addActions([self.act_add, self.act_folder])
+        file_menu.addSeparator()
+        file_menu.addAction(close_act)
+        file_menu.addActions([self.act_about, self.act_settings, self.act_quit])   # 會被移到應用程式選單
+        dl_menu = bar.addMenu("下載")
+        dl_menu.addActions([menu_copy(self.act_resume), menu_copy(self.act_pause)])
+        dl_menu.addSeparator()
+        dl_menu.addActions([self.act_start_all, self.act_pause_all])
+        dl_menu.addSeparator()
+        dl_menu.addAction(menu_copy(self.act_delete, "刪除…"))
+
+        # 清單中按 ⌫ 或 ⌘⌫ 刪除（Mac 鍵盤的 delete 鍵是 Backspace）；只限下載清單，不影響搜尋框
+        for key in ("Backspace", "Ctrl+Backspace"):
+            sc = QShortcut(QKeySequence(key), self.table)
+            sc.setContext(Qt.ShortcutContext.WidgetShortcut)
+            sc.activated.connect(self.delete_selected)
+
+    @staticmethod
+    def _close_active_window():
+        """⌘W：關閉目前在前面的視窗（可能是對話框，不一定是主視窗）。"""
+        w = QApplication.activeWindow()
+        if w is not None:
+            w.close()
+
+    def apply_theme(self, dark: bool) -> None:
+        """系統在執行中切換淺色／深色外觀：重新著色（樣式表由 Controller 重新套用）。"""
+        self.dark = self.model.dark = self.delegate.dark = dark
+        for a, name in self._themed:
+            a.setIcon(self._ico(name))
+        for row, (_key, _label, name) in enumerate(CATEGORIES):
+            self.cats.item(row).setIcon(self._ico(name))
+        self.table.viewport().update()
+
     # ---------------------------------------------------------------- 視窗
     def bring_to_front(self):
         self.showNormal()
@@ -372,8 +438,9 @@ class MainWindow(QMainWindow):
                 self.hide()
                 if not self._tray_hint_shown:
                     self._tray_hint_shown = True
-                    self.ctl.notify("Divebird 仍在背景執行",
-                                    "瀏覽器的下載會繼續交給 Divebird。要結束程式請在系統匣圖示按右鍵 → 結束。")
+                    how = ("點選單列的 Divebird 圖示 → 結束 Divebird" if IS_MAC else
+                           f"在{TRAY_NAME}圖示按右鍵 → 結束")
+                    self.ctl.notify("Divebird 仍在背景執行", f"瀏覽器的下載會繼續交給 Divebird。要結束程式請{how}。")
             else:
                 # 沒有系統匣（例如 GNOME 預設）：改為最小化，讓擴充功能仍可交付下載
                 self.showMinimized()

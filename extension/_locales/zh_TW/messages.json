@@ -7,6 +7,6 @@
     "message": "Divebird"
   },
   "appDescription": {
-    "message": "在網頁影片上加一顆「下載此影片」按鈕，一鍵交給 Divebird 桌面程式多連線下載；可偵測 HLS／DASH 串流並自動合併成 MP4。需搭配免費的 Divebird 桌面版（Windows／Linux）。"
+    "message": "在網頁影片上加一顆「下載此影片」按鈕，一鍵交給 Divebird 桌面程式多連線下載；可偵測 HLS／DASH 串流並自動合併成 MP4。需搭配免費的 Divebird 桌面版（Windows／macOS／Linux）。"
   }
 }

@@ -2,7 +2,7 @@
 
 「關於」與設定頁底部顯示版本號，發布新版前要重新產生：
 
-    .venv/Scripts/python.exe scripts/readme_screenshots.py      （Linux：.venv/bin/python）
+    .venv/Scripts/python.exe scripts/readme_screenshots.py      （Linux／macOS：.venv/bin/python）
 
 視窗只在記憶體裡繪製（WA_DontShowOnScreen），不會出現在桌面上，也不建立系統匣圖示；
 使用臨時設定資料夾與非預設埠，不影響使用者的資料。輸出到 docs/images/。
@@ -20,6 +20,8 @@ OUT = Path(__file__).resolve().parents[1] / "docs" / "images"
 def shoot(scheme: str) -> None:
     os.environ["APPDATA"] = tempfile.mkdtemp(prefix="divebird-shot-")
     os.environ["XDG_CONFIG_HOME"] = os.environ["APPDATA"]
+    if sys.platform == "darwin":    # macOS 的設定資料夾在家目錄底下（~/Library/Application Support）
+        os.environ["HOME"] = os.environ["APPDATA"]
 
     from PySide6.QtCore import QRectF, Qt, QTimer
     from PySide6.QtGui import QColor, QImage, QPainter, QPainterPath

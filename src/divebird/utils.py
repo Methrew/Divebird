@@ -108,6 +108,11 @@ def open_path(path: Path, select: bool = False) -> None:
                 subprocess.Popen(["explorer", "/select,", str(path)])
             else:
                 os.startfile(str(path if not select else path.parent))  # type: ignore[attr-defined]
+        elif sys.platform == "darwin":
+            # open -R：在 Finder 中顯示並選取檔案
+            cmd = ["open", "-R", str(path)] if select and path.exists() else \
+                ["open", str(path.parent if select else path)]
+            subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         else:
             target = path.parent if select else path
             subprocess.Popen(["xdg-open", str(target)], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

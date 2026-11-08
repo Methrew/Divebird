@@ -2,17 +2,20 @@ r"""開機 / 登入時自動啟動（縮小到系統匣），讓瀏覽器擴充�
 
 - Windows：HKCU\Software\Microsoft\Windows\CurrentVersion\Run
   （使用者在「工作管理員 → 啟動應用程式」停用時，Windows 另外記在 StartupApproved\Run）
+- macOS：~/Library/LaunchAgents/io.github.acer1204.divebird.plist（launchd 的使用者 LaunchAgent）
+  （使用者在「系統設定 → 一般 → 登入項目」（macOS 15 為「登入項目與延伸功能」）關閉時，launchd 會把它標記為停用）
 - Linux：~/.config/autostart/divebird.desktop（XDG Autostart）
 """
 from __future__ import annotations
 
 import os
+import plistlib
 import shlex
 import subprocess
 import sys
 from pathlib import Path
 
-from .config import APP_NAME, LEGACY_NAMES
+from .config import APP_NAME, LEGACY_NAMES, MAC_BUNDLE_ID, running_from_temporary_location
 
 RUN_KEY = r"Software\Microsoft\Windows\CurrentVersion\Run"
 APPROVED_KEY = r"Software\Microsoft\Windows\CurrentVersion\Explorer\StartupApproved\Run"
@@ -69,6 +72,69 @@ def _win_delete(key: str, name: str) -> None:
         pass
 
 
+# ---------------------------------------------------------------- macOS
+def _launch_agent() -> Path:
+    return Path.home() / "Library" / "LaunchAgents" / f"{MAC_BUNDLE_ID}.plist"
+
+
+def _mac_read() -> dict | None:
+    try:
+        with open(_launch_agent(), "rb") as f:
+            data = plistlib.load(f)
+    except Exception:  # noqa: BLE001 - 檔案損毀時 plistlib 可能拋出 ExpatError 等各種例外：視為沒有登記
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _mac_write(cmd: list[str], keep: dict | None = None) -> None:
+    data = {
+        "Label": MAC_BUNDLE_ID,
+        "ProgramArguments": cmd,
+        "RunAtLoad": True,
+        "ProcessType": "Interactive",          # 有介面的程式：launchd 不要降低它的優先順序
+        "LimitLoadToSessionType": "Aqua",      # 只在使用者登入圖形介面時啟動（不在 SSH 登入時啟動）
+        "AssociatedBundleIdentifiers": [MAC_BUNDLE_ID],   # 「登入項目」設定中顯示為 Divebird
+    }
+    if keep and "Disabled" in keep:
+        data["Disabled"] = keep["Disabled"]
+    f = _launch_agent()
+    f.parent.mkdir(parents=True, exist_ok=True)
+    tmp = f.with_name(f.name + ".tmp")
+    tmp.write_bytes(plistlib.dumps(data))
+    os.replace(tmp, f)
+
+
+def _launchctl(*args: str) -> str:
+    try:
+        return subprocess.run(["launchctl", *args], capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        return ""
+
+
+def _mac_disabled_by_user() -> bool:
+    """使用者在「登入項目」關閉，或以 launchctl disable 停用：launchctl print-disabled 會列出
+    "<Label>" => disabled（舊版 macOS 為 => true）。"""
+    for line in _launchctl("print-disabled", f"gui/{os.getuid()}").splitlines():
+        key, _, value = line.partition("=>")
+        if key.strip().strip('"') == MAC_BUNDLE_ID:
+            return value.strip().lower() in ("disabled", "true")
+    return False
+
+
+def _mac_enabled() -> bool:
+    data = _mac_read()
+    return bool(data) and not data.get("Disabled", False) and not _mac_disabled_by_user()
+
+
+def unavailable_reason() -> str:
+    """目前無法設定自動啟動的原因（空字串表示可以）。
+
+    macOS：從磁碟映像檔或「下載項目」直接開啟時，App 在暫存位置執行，登入項目指向那裡，下次登入就找不到程式。"""
+    if running_from_temporary_location():
+        return "請先把 Divebird 拖到「應用程式」資料夾，再從那裡開啟，才能設定登入時自動啟動。"
+    return ""
+
+
 # ---------------------------------------------------------------- Linux
 def _desktop_file(name: str = APP_NAME) -> Path:
     base = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
@@ -96,6 +162,8 @@ def _desktop_enabled(path: Path) -> bool:
 def is_enabled() -> bool:
     if sys.platform == "win32":
         return _win_run_exists(APP_NAME) and not _win_disabled_by_user(APP_NAME)
+    if sys.platform == "darwin":
+        return _mac_enabled()
     return _desktop_enabled(_desktop_file())
 
 
@@ -110,6 +178,15 @@ def set_enabled(enabled: bool) -> None:
         else:
             _win_delete(RUN_KEY, APP_NAME)
         return
+    if sys.platform == "darwin":
+        if enabled:
+            _mac_write(cmd)
+            if _mac_disabled_by_user():      # 使用者在設定中重新勾選：清除「已停用」標記
+                _launchctl("enable", f"gui/{os.getuid()}/{MAC_BUNDLE_ID}")
+        else:
+            # 只移除設定檔，不執行 launchctl bootout：由登入項目啟動的 Divebird 就是這個工作，bootout 會把它結束
+            _launch_agent().unlink(missing_ok=True)
+        return
     f = _desktop_file()
     if enabled:
         f.parent.mkdir(parents=True, exist_ok=True)
@@ -123,8 +200,14 @@ def set_enabled(enabled: bool) -> None:
 
 
 def refresh() -> None:
-    """Windows：已登記的自動啟動指令與目前的啟動方式不同時（例如後來才有 Divebird.exe），改成目前的指令。
-    只改指令本身，不動使用者在工作管理員中的「停用」設定。"""
+    """已登記的自動啟動指令與目前的啟動方式不同時，改成目前的指令。
+    （Windows：例如後來才有 Divebird.exe；macOS：例如把 Divebird.app 從「下載項目」搬到「應用程式」）
+    只改指令本身，不動使用者在工作管理員或登入項目中的「停用」設定。"""
+    if sys.platform == "darwin":
+        data = _mac_read()
+        if data is not None and not unavailable_reason() and data.get("ProgramArguments") != launch_command():
+            _mac_write(launch_command(), keep=data)
+        return
     if sys.platform != "win32" or not _win_run_exists(APP_NAME):
         return
     import winreg
@@ -140,6 +223,8 @@ def migrate_legacy() -> None:
     """改名前（OpenDM）設定的自動啟動：移除舊項目；只有舊項目原本是「啟用中」才以新名稱重新建立，
     不會打開使用者已經在系統中停用的自動啟動。"""
     was_active = False
+    if sys.platform == "darwin":
+        return      # 改名前的 OpenDM 沒有 macOS 版，沒有舊設定要搬
     if sys.platform == "win32":
         for name in LEGACY_NAMES:
             if _win_run_exists(name):

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Divebird 開發環境建置（Linux）
+# Divebird 開發環境建置（Linux／macOS）
 # 所有東西都放在專案目錄內，不依賴、也不修改系統上的 Python：
 #   .runtime/uv/       uv 套件管理器（自動下載）
 #   .runtime/python/   獨立的 CPython 3.12（由 uv 下載）
@@ -18,7 +18,11 @@ if [ ! -x "$UV" ]; then
     aarch64|arm64) ARCH=aarch64 ;;
     *) echo "不支援的 CPU 架構：$(uname -m)"; exit 1 ;;
   esac
-  URL="https://github.com/astral-sh/uv/releases/latest/download/uv-$ARCH-unknown-linux-gnu.tar.gz"
+  case "$(uname -s)" in
+    Darwin) TARGET="$ARCH-apple-darwin" ;;
+    *) TARGET="$ARCH-unknown-linux-gnu" ;;
+  esac
+  URL="https://github.com/astral-sh/uv/releases/latest/download/uv-$TARGET.tar.gz"
   if command -v curl >/dev/null; then curl -fsSL "$URL" -o "$RUNTIME/uv/uv.tar.gz"
   else wget -qO "$RUNTIME/uv/uv.tar.gz" "$URL"; fi
   tar -xzf "$RUNTIME/uv/uv.tar.gz" -C "$RUNTIME/uv" --strip-components=1
@@ -33,8 +37,8 @@ export UV_PROJECT_ENVIRONMENT="$ROOT/.venv"
 echo "==> 安裝獨立 Python 與相依套件（第一次約需數分鐘）..."
 "$UV" sync --project "$ROOT"
 
-# Qt 的 xcb 平台外掛在部分發行版需要額外的系統函式庫
-if ! ldconfig -p 2>/dev/null | grep -q libxcb-cursor.so.0; then
+# Qt 的 xcb 平台外掛在部分發行版需要額外的系統函式庫（macOS 不需要）
+if [ "$(uname -s)" = Linux ] && ! ldconfig -p 2>/dev/null | grep -q libxcb-cursor.so.0; then
   echo
   echo "提醒：系統缺少 libxcb-cursor0，圖形介面可能無法啟動，請安裝："
   echo "  Debian/Ubuntu: sudo apt install libxcb-cursor0"

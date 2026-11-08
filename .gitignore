@@ -13,3 +13,5 @@ assets/icon-concepts/
 # Windows 啟動程式：由 scripts/win_gui_launcher.py 在本機編譯（含替換時的暫存／舊檔）
 /Divebird.exe
 /Divebird.exe.*
+# macOS Finder 自動產生的檔案
+.DS_Store

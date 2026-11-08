@@ -110,6 +110,14 @@ class FileServer:
         self.httpd.server_close()
 
 
+@pytest.fixture(autouse=True)
+def _no_quarantine_records(monkeypatch):
+    """macOS：下載完成時會加上隔離屬性，系統也會在使用者的隔離紀錄資料庫記一筆。
+    測試中的下載不必寫進開發者的資料庫（tests/test_macos.py 另外測試這個功能）。"""
+    from divebird.engine import manager
+    monkeypatch.setattr(manager, "mark_quarantine", lambda *args, **kwargs: False)
+
+
 @pytest.fixture
 def server():
     fs = FileServer()
