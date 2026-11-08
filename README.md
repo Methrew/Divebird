@@ -101,7 +101,7 @@ Divebird 是開源、跨平台（Windows／macOS／Linux）的下載管理員，
 | --- | --- | --- |
 | Windows 10／11（64 位元） | `Divebird-<版本>-windows-x64.zip` | 解壓縮後，按兩下 `Divebird\Divebird.exe` |
 | Linux x86_64 | `Divebird-<版本>-linux-x86_64.tar.gz` | 解壓縮後執行 `./Divebird/install.sh` |
-| macOS 13 以上（Apple Silicon） | `Divebird-<版本>-macos-arm64.dmg` | 打開後把 Divebird 拖到「應用程式」 |
+| macOS 15 以上（Apple Silicon） | `Divebird-<版本>-macos-arm64.dmg` | 打開後把 Divebird 拖到「應用程式」 |
 
 - **Windows**：程式沒有數位簽章，第一次執行若出現「Windows 已保護您的電腦」，請按「其他資訊」→「仍要執行」。
 - **Linux**：
@@ -110,12 +110,12 @@ Divebird 是開源、跨平台（Windows／macOS／Linux）的下載管理員，
   - 解除安裝：刪除 `~/.local/share/divebird`、`~/.local/share/applications/divebird.desktop`、`~/.config/autostart/divebird.desktop` 與 `~/.local/bin/divebird`。
   - GNOME 預設沒有系統匣，可安裝 GNOME 擴充套件「AppIndicator and KStatusNotifierItem Support」；沒有系統匣時，關閉視窗會改為最小化到工作列（按 **Ctrl+Q** 結束程式）。
 - **macOS**：
-  - 只支援 Apple Silicon（M 系列晶片）的 Mac，需要 macOS 13 以上。
-  - 發佈的版本沒有 Apple 公證，第一次開啟時系統會擋下，可能顯示「已損毀，無法打開」（檔案其實沒有損壞）。請在終端機執行 `xattr -dr com.apple.quarantine /Applications/Divebird.app` 後再開啟；或到「系統設定 → 隱私權與安全性」按「強制打開」（這個按鈕有時不會出現）。
+  - 只支援 Apple Silicon（M 系列晶片）的 Mac，需要 macOS 15 以上。
+  - 經過 Apple 公證的版本，第一次開啟時系統只會詢問是否要打開從網際網路下載的 App，按「打開」即可。沒有公證的版本（例如 GitHub Actions 自動打包的版本）會被系統擋下，可能顯示「已損毀，無法打開」（檔案其實沒有損壞）。請在終端機執行 `xattr -dr com.apple.quarantine /Applications/Divebird.app` 後再開啟，或到「系統設定 → 隱私權與安全性」按「強制打開」（這個按鈕有時不會出現）。
   - 請先拖到「應用程式」再開啟。直接在 .dmg 或「下載項目」裡開啟時，系統會讓它在暫存位置執行：無法設定登入時自動啟動，擴充功能的資料夾路徑之後也會失效。
-  - Divebird 常駐在螢幕頂端的選單列；關閉視窗後，點 Dock 圖示，或點選單列圖示再選「顯示主視窗」，就能叫回。登入時自動啟動在「設定 → 一般」勾選，可在「系統設定 → 一般 → 登入項目」管理。
+  - Divebird 常駐在螢幕頂端的選單列；關閉視窗後，點 Dock 圖示，或點選單列圖示再選「顯示主視窗」，就能叫回。登入時自動啟動在「設定 → 一般」勾選，可在「系統設定 → 一般 → 登入項目與延伸功能」管理。
   - 第一次下載到「下載項目」時，macOS 會詢問是否允許 Divebird 取用，請按「允許」。下載完成的檔案跟瀏覽器下載的一樣標記為來自網路，開啟其中的 App 或安裝檔時會由 Gatekeeper 檢查。
-  - 更新到新版本：先點選單列的 Divebird 圖示 →「結束 Divebird」；若 AI 應用程式正在使用 `divebird-mcp`，也請先結束該應用程式。接著打開新版的 .dmg，把 Divebird 拖到「應用程式」並選「取代」。設定與下載清單存放在 `~/Library/Application Support/Divebird`，不會遺失。新版同樣沒有公證，開啟前請再執行一次上面的 `xattr` 指令；更新後第一次下載到「下載項目」時，macOS 可能會再詢問一次，請按「允許」。擴充功能的資料夾在 App 裡面，會跟著更新；版本說明提到擴充功能有變動時，請到 `chrome://extensions` 重新載入 Divebird 擴充功能。
+  - 更新到新版本：先點選單列的 Divebird 圖示 →「結束 Divebird」；若 AI 應用程式正在使用 `divebird-mcp`，也請先結束該應用程式。接著打開新版的 .dmg，把 Divebird 拖到「應用程式」並選「取代」。設定與下載清單存放在 `~/Library/Application Support/Divebird`，不會遺失。新版若沒有公證，開啟前請再執行一次上面的 `xattr` 指令；更新後第一次下載到「下載項目」時，macOS 可能會再詢問一次，請按「允許」。擴充功能的資料夾在 App 裡面，會跟著更新；版本說明提到擴充功能有變動時，請到 `chrome://extensions` 重新載入 Divebird 擴充功能。
   - 解除安裝：刪除「應用程式」中的 Divebird、`~/Library/Application Support/Divebird`，以及 `~/Library/LaunchAgents/io.github.acer1204.divebird.plist`（有開啟登入時自動啟動時）。
 - 每個版本都附有 `SHA256SUMS.txt`，可用來驗證下載的檔案是否完整。
 
@@ -213,7 +213,7 @@ Divebird 內建 [MCP](https://modelcontextprotocol.io/)（Model Context Protocol
 
 - 尚未建立執行環境時，打包腳本會先自動執行 `scripts/setup.*`。
 - Linux 打包會一併包進建置機器上的系統函式庫，打包出的程式只能在 glibc 版本不低於建置機器的發行版上執行；若要支援更多發行版，請在較舊的系統上建置。
-- macOS 版只支援 Apple Silicon，請在 Apple Silicon 的 Mac 上打包；最低系統版本取自內附的 Qt（目前為 macOS 13）。預設只有 ad-hoc 簽章：在自己的 Mac 上可以使用，但分享給別人時，對方的 Mac 會擋下（可能顯示「已損毀」）。
+- macOS 版只支援 Apple Silicon，請在 Apple Silicon 的 Mac 上打包；需要 macOS 15 以上（內附的 PySide6 有部分模組以 macOS 15 為最低版本，Divebird 也沒有在 macOS 13／14 上測試過）。預設只有 ad-hoc 簽章：在自己的 Mac 上可以使用，但分享給別人時，對方的 Mac 會擋下（可能顯示「已損毀」）。
 - **macOS 以 Developer ID 簽章並送 Apple 公證**（要分享給別人時；需要付費的 Apple 開發者帳號）：先用帳號持有人的 Apple 帳號登入 Xcode，在「Settings → Apple Accounts（舊版 Xcode 為 Accounts）→ Manage Certificates」按「+」建立「Developer ID Application」憑證（只有帳號持有人能建立；也可以在開發者網站的 Certificates 頁面上傳 CSR 建立，中繼憑證選「G2 Sub-CA」）。再到 [account.apple.com](https://account.apple.com) 的「登入與安全 → App 專用密碼」建立一組密碼，執行下面第一行指令並依提示輸入這組密碼（只會存在鑰匙圈）。之後打包時設定憑證名稱（可用 `security find-identity -p codesigning` 查詢）與公證設定：
 
   ```bash
@@ -222,7 +222,7 @@ Divebird 內建 [MCP](https://modelcontextprotocol.io/)（Model Context Protocol
   ```
 
   打包腳本會以 hardened runtime 簽章所有程式（內附的 deno 另外給它需要的 JIT 權限）、檢查每個程式的簽章、送 Apple 公證（約需數分鐘），並把公證結果附在 App 與 .dmg 上。這樣的 .dmg 分享給別人，對方只會看到一般的「從網際網路下載」確認視窗。只設定 `DIVEBIRD_SIGN_IDENTITY` 時只簽章、不公證。打包前會先試簽一個小檔案；第一次使用這個憑證時，系統可能會詢問是否允許 codesign 使用鑰匙圈裡的金鑰，請輸入 Mac 的登入密碼並按「永遠允許」，否則打包時每個檔案都會再問一次。
-- 在 `macos` 分支推送 `macos-v` 開頭的標籤（例如 `macos-v1.2.3`）時，GitHub Actions 會在 macOS（Apple Silicon）上建置、測試，並發佈到 Releases（不會標成 Latest）。Windows 與 Linux 版由 `main` 的 `v` 開頭標籤發佈。
+- 在 `macos` 分支推送 `macos-v` 開頭的標籤（例如 `macos-v1.2.3`）時，GitHub Actions 會在 macOS（Apple Silicon）上建置、測試，並發佈到 Releases（不會標成 Latest）。Windows 與 Linux 版由 `main` 的 `v` 開頭標籤發佈。GitHub Actions 打包的 .dmg 沒有公證；要發佈公證版時，用乾淨的 clone 切到同一個 commit（沿用既有的執行環境時，先執行 `./scripts/setup.sh`，讓套件與 `uv.lock` 一致），用上面的方式打包並送公證，再替換 Release 裡的 .dmg，並在 `dist` 資料夾執行 `shasum -a 256 Divebird-<版本>-macos-arm64.dmg`，用結果更新 `SHA256SUMS.txt`。
 
 ### 開發與測試
 
@@ -272,7 +272,7 @@ flowchart LR
 
 - **擴充功能顯示「未連線」**：確認 Divebird 桌面程式正在執行（它可能已縮小到系統匣，macOS 為選單列），且桌面程式與擴充功能設定的埠號相同。
 - **某個影片下載失敗**：影音網站常改版，請將 Divebird 更新到最新版本（Windows／Linux 版見[最新版本](https://github.com/acer1204/Divebird/releases/latest)；macOS 版請在 [Releases](https://github.com/acer1204/Divebird/releases) 找標籤以 `macos-v` 開頭的最新版本）；也可以改用選單中的其他來源試試。
-- **macOS 說 Divebird「已損毀」或無法打開**：發佈的版本沒有 Apple 公證，檔案並沒有損壞。請在終端機執行 `xattr -dr com.apple.quarantine /Applications/Divebird.app`（見上方「下載免安裝版」的 macOS 說明）。
+- **macOS 說 Divebird「已損毀」或無法打開**：表示你下載的版本沒有經過 Apple 公證，檔案並沒有損壞。請在終端機執行 `xattr -dr com.apple.quarantine /Applications/Divebird.app`（見上方「下載免安裝版」的 macOS 說明）。
 - **macOS 上下載失敗，顯示「Operation not permitted」**：macOS 沒有允許 Divebird 取用下載資料夾。請到「系統設定 → 隱私權與安全性 → 檔案和檔案夾」允許 Divebird，或在設定中改用其他下載資料夾。
 - **安全性**：本機 API 只監聽 `127.0.0.1`；帶有 `Origin` 標頭的請求只接受來自瀏覽器擴充功能的來源，因此一般網頁無法呼叫。下載完成後，會清除該任務保存的 Cookie（不影響瀏覽器本身的 Cookie）。
 
@@ -365,7 +365,7 @@ Download the file for your system from [Releases](https://github.com/acer1204/Di
 | --- | --- | --- |
 | Windows 10 / 11 (64-bit) | `Divebird-<version>-windows-x64.zip` | Unzip it and double-click `Divebird\Divebird.exe` |
 | Linux x86_64 | `Divebird-<version>-linux-x86_64.tar.gz` | Extract it and run `./Divebird/install.sh` |
-| macOS 13 or later (Apple Silicon) | `Divebird-<version>-macos-arm64.dmg` | Open it and drag Divebird to Applications |
+| macOS 15 or later (Apple Silicon) | `Divebird-<version>-macos-arm64.dmg` | Open it and drag Divebird to Applications |
 
 - **Windows**: the app is not code-signed. If SmartScreen shows "Windows protected your PC", click "More info" → "Run anyway".
 - **Linux**:
@@ -374,12 +374,12 @@ Download the file for your system from [Releases](https://github.com/acer1204/Di
   - To uninstall, delete `~/.local/share/divebird`, `~/.local/share/applications/divebird.desktop`, `~/.config/autostart/divebird.desktop` and `~/.local/bin/divebird`.
   - GNOME has no system tray by default; you can add one with the "AppIndicator and KStatusNotifierItem Support" extension. Without a tray, closing the window minimizes it to the taskbar instead of hiding it in the tray (press **Ctrl+Q** to quit).
 - **macOS**:
-  - Only Macs with Apple Silicon (M-series chips) are supported, running macOS 13 or later.
-  - Released builds are not notarized by Apple, so macOS blocks the first launch and may say the app "is damaged and can't be opened" (it isn't). Run `xattr -dr com.apple.quarantine /Applications/Divebird.app` in Terminal and open it again, or click "Open Anyway" in System Settings → Privacy & Security (the button doesn't always appear).
+  - Only Macs with Apple Silicon (M-series chips) are supported, running macOS 15 or later.
+  - The first time you open a build notarized by Apple, macOS only asks whether to open an app downloaded from the internet: click "Open". A build that isn't notarized (such as one built automatically by GitHub Actions) is blocked, and macOS may say the app "is damaged and can't be opened" (it isn't): run `xattr -dr com.apple.quarantine /Applications/Divebird.app` in Terminal and open it again, or click "Open Anyway" in System Settings → Privacy & Security (the button doesn't always appear).
   - Drag it to Applications before opening it. Opened straight from the disk image or from Downloads, it runs from a temporary location: start at login can't be set up, and the extension folder path stops working later.
-  - Divebird lives in the menu bar at the top of the screen; after closing the window, click the Dock icon, or click the menu bar icon and choose "顯示主視窗" (show main window), to bring it back. Turn on start at login in Settings → "一般" (General); you can manage it in System Settings → General → Login Items.
+  - Divebird lives in the menu bar at the top of the screen; after closing the window, click the Dock icon, or click the menu bar icon and choose "顯示主視窗" (show main window), to bring it back. Turn on start at login in Settings → "一般" (General); you can manage it in System Settings → General → Login Items & Extensions.
   - The first time Divebird saves to your Downloads folder, macOS asks whether to allow it; click "Allow". Finished downloads are marked as coming from the internet, just like browser downloads, so Gatekeeper checks apps and installers in them when you open them.
-  - To update, first click the Divebird icon in the menu bar → "結束 Divebird" (Quit Divebird); if an AI app is using `divebird-mcp`, quit that app too. Then open the new .dmg, drag Divebird to Applications and choose "Replace". Settings and the download list live in `~/Library/Application Support/Divebird` and are kept. The new version isn't notarized either, so run the `xattr` command above again before opening it; the first time it saves to your Downloads folder after the update, macOS may ask again: click "Allow". The extension folder is inside the app, so it is updated too; when the release notes say the extension changed, reload the Divebird extension on `chrome://extensions`.
+  - To update, first click the Divebird icon in the menu bar → "結束 Divebird" (Quit Divebird); if an AI app is using `divebird-mcp`, quit that app too. Then open the new .dmg, drag Divebird to Applications and choose "Replace". Settings and the download list live in `~/Library/Application Support/Divebird` and are kept. If the new version isn't notarized, run the `xattr` command above again before opening it; the first time it saves to your Downloads folder after the update, macOS may ask again: click "Allow". The extension folder is inside the app, so it is updated too; when the release notes say the extension changed, reload the Divebird extension on `chrome://extensions`.
   - To uninstall, delete Divebird from Applications, `~/Library/Application Support/Divebird`, and `~/Library/LaunchAgents/io.github.acer1204.divebird.plist` (if you turned on start at login).
 - Every release includes `SHA256SUMS.txt` so you can verify your download.
 
@@ -477,7 +477,7 @@ Divebird has a built-in [MCP](https://modelcontextprotocol.io/) (Model Context P
 
 - If the environment has not been set up yet, the build scripts run `scripts/setup.*` first.
 - A Linux build bundles system libraries from the build machine, so it only runs on distributions whose glibc is at least as new as the build machine's. To support more distributions, build on an older system.
-- The macOS version supports Apple Silicon only, so build it on an Apple Silicon Mac; the minimum macOS version comes from the bundled Qt (currently macOS 13). By default the app is only ad-hoc signed: it runs on your own Mac, but other people's Macs block it when you share it (they may see "is damaged").
+- The macOS version supports Apple Silicon only, so build it on an Apple Silicon Mac; it needs macOS 15 or later (some of the bundled PySide6 modules require macOS 15, and Divebird hasn't been tested on macOS 13 or 14). By default the app is only ad-hoc signed: it runs on your own Mac, but other people's Macs block it when you share it (they may see "is damaged").
 - **Sign with a Developer ID and notarize with Apple on macOS** (to share the app; needs a paid Apple Developer account): sign in to Xcode with the Account Holder's Apple Account and create a "Developer ID Application" certificate in Settings → Apple Accounts (Accounts in older Xcode) → Manage Certificates → "+" (only the Account Holder can; you can also upload a CSR on the Certificates page of the developer website and pick the "G2 Sub-CA"). Then create an app-specific password at [account.apple.com](https://account.apple.com) (Sign-In and Security → App-Specific Passwords), and run the first command below, entering that password when asked (it is stored only in your keychain). Then build with the certificate name (see `security find-identity -p codesigning`) and the notary profile:
 
   ```bash
@@ -486,7 +486,7 @@ Divebird has a built-in [MCP](https://modelcontextprotocol.io/) (Model Context P
   ```
 
   The build script signs every program with the hardened runtime (the bundled deno gets the JIT entitlement it needs), checks every signature, notarizes with Apple (takes a few minutes), and staples the result to the app and the .dmg. People you share that .dmg with only see the usual "downloaded from the internet" confirmation. With only `DIVEBIRD_SIGN_IDENTITY` set, the build is signed but not notarized. Before building, the script test-signs a small file; the first time the certificate is used, macOS may ask whether codesign can use the key in your keychain: enter your login password and click Always Allow, or it will ask again for every file during the build.
-- On the `macos` branch, pushing a tag that starts with `macos-v` (for example `macos-v1.2.3`) makes GitHub Actions build and test on macOS (Apple Silicon) and publish to Releases (not marked Latest). Windows and Linux packages are published from `v` tags on `main`.
+- On the `macos` branch, pushing a tag that starts with `macos-v` (for example `macos-v1.2.3`) makes GitHub Actions build and test on macOS (Apple Silicon) and publish to Releases (not marked Latest). Windows and Linux packages are published from `v` tags on `main`. The .dmg built by GitHub Actions is not notarized; to publish a notarized one, check out the same commit in a clean clone (if you reuse an existing environment, run `./scripts/setup.sh` first so the packages match `uv.lock`), build and notarize it as described above, replace the .dmg in the release, and update `SHA256SUMS.txt` with the output of `shasum -a 256 Divebird-<version>-macos-arm64.dmg` run in the `dist` folder.
 
 ### Development and testing
 
@@ -536,7 +536,7 @@ flowchart LR
 
 - **The extension says "未連線" (not connected)**: make sure the Divebird desktop app is running (it may be in the system tray, or the menu bar on macOS) and that the app and the extension use the same port.
 - **A video fails to download**: video sites change often, so update Divebird to the newest version (Windows / Linux: the [latest release](https://github.com/acer1204/Divebird/releases/latest); macOS: the newest release on [Releases](https://github.com/acer1204/Divebird/releases) whose tag starts with `macos-v`), or try another source from the menu.
-- **macOS says Divebird "is damaged" or can't be opened**: released builds are not notarized by Apple; the file is fine. Run `xattr -dr com.apple.quarantine /Applications/Divebird.app` in Terminal (see the macOS notes under "Download a prebuilt package").
+- **macOS says Divebird "is damaged" or can't be opened**: the build you downloaded isn't notarized by Apple; the file is fine. Run `xattr -dr com.apple.quarantine /Applications/Divebird.app` in Terminal (see the macOS notes under "Download a prebuilt package").
 - **Downloads fail on macOS with "Operation not permitted"**: macOS has not allowed Divebird to use the download folder. Allow Divebird in System Settings → Privacy & Security → Files & Folders, or choose another download folder in the settings.
 - **Security**: the local API listens on `127.0.0.1` only. Requests that carry an `Origin` header are accepted only from browser extensions, so ordinary web pages cannot call it. The cookies stored with a download are deleted once that download finishes; your browser's own cookies are not touched.
 
