@@ -213,7 +213,7 @@ Divebird 內建 [MCP](https://modelcontextprotocol.io/)（Model Context Protocol
 - 尚未建立執行環境時，打包腳本會先自動執行 `scripts/setup.*`。
 - Linux 打包會一併包進建置機器上的系統函式庫，打包出的程式只能在 glibc 版本不低於建置機器的發行版上執行；若要支援更多發行版，請在較舊的系統上建置。
 - macOS 版只支援 Apple Silicon，請在 Apple Silicon 的 Mac 上打包。打包出的 App 只有 ad-hoc 簽章、沒有 Apple 公證；最低系統版本取自內附的 Qt（目前為 macOS 13）。
-- 推送 `v` 開頭的標籤（例如 `v1.0.1`）時，GitHub Actions 會在 Windows 與 Ubuntu 22.04 上建置、測試，並自動發佈到 Releases。
+- 推送 `v` 開頭的標籤（例如 `v1.0.1`）時，GitHub Actions 會在 Windows、Ubuntu 22.04 與 macOS（Apple Silicon）上建置、測試，並自動發佈到 Releases。
 
 ### 開發與測試
 
@@ -468,7 +468,7 @@ Divebird has a built-in [MCP](https://modelcontextprotocol.io/) (Model Context P
 - If the environment has not been set up yet, the build scripts run `scripts/setup.*` first.
 - A Linux build bundles system libraries from the build machine, so it only runs on distributions whose glibc is at least as new as the build machine's. To support more distributions, build on an older system.
 - The macOS version supports Apple Silicon only, so build it on an Apple Silicon Mac. The app is only ad-hoc signed, not notarized; the minimum macOS version comes from the bundled Qt (currently macOS 13).
-- Pushing a tag that starts with `v` (for example `v1.0.1`) makes GitHub Actions build and test on Windows and Ubuntu 22.04, then publish the packages to Releases.
+- Pushing a tag that starts with `v` (for example `v1.0.1`) makes GitHub Actions build and test on Windows, Ubuntu 22.04 and macOS (Apple Silicon), then publish the packages to Releases.
 
 ### Development and testing
 
