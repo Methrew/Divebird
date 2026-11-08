@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    tags: ["v*"]
+    tags: ["macos-v*"]     # macos 分支獨立發布；Windows／Linux 版由 main 的 v* 標籤發布
   workflow_dispatch:
 
 jobs:
@@ -11,9 +11,6 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - os: windows-latest
-          # 用較舊的 Ubuntu 建置，產出的執行檔可在較多 Linux 發行版上執行
-          - os: ubuntu-22.04
           # macOS 只支援 Apple Silicon（M 系列晶片）
           - os: macos-latest
     runs-on: ${{ matrix.os }}
@@ -69,7 +66,7 @@ jobs:
             dist/*.tar.gz
             dist/*.dmg
 
-  # 每次都收齊所有平台的檔案並產生校驗碼（檢查發佈流程）；推送 v* 標籤時才真的發佈到 GitHub Releases
+  # 每次都產生校驗碼（檢查發佈流程）；推送 macos-v* 標籤時才真的發佈到 GitHub Releases
   release:
     needs: build
     runs-on: ubuntu-latest
@@ -84,18 +81,15 @@ jobs:
         run: |
           cd artifacts
           ls -l
-          # 每個平台的檔案必須各一個（分行寫：bash -e 不會因 && 串列中間的失敗而中止）
-          test "$(ls *-windows-x64.zip | wc -l)" -eq 1
-          test "$(ls *-linux-*.tar.gz | wc -l)" -eq 1
           test "$(ls *-macos-arm64.dmg | wc -l)" -eq 1
-          sha256sum *.zip *.tar.gz *.dmg > SHA256SUMS.txt
+          sha256sum *.dmg > SHA256SUMS.txt
           cat SHA256SUMS.txt
-      - if: startsWith(github.ref, 'refs/tags/v')
+      - if: startsWith(github.ref, 'refs/tags/macos-v')
         uses: softprops/action-gh-release@v3
         with:
           files: |
-            artifacts/*.zip
-            artifacts/*.tar.gz
             artifacts/*.dmg
             artifacts/SHA256SUMS.txt
           generate_release_notes: true
+          # 不標成 Latest：Windows／Linux 版的「檢查更新」看的是 Latest
+          make_latest: false

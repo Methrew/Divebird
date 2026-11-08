@@ -13,10 +13,12 @@ from . import __version__
 AUTHOR = "acer1204"
 AUTHOR_URL = "https://github.com/acer1204"
 REPO_URL = "https://github.com/acer1204/Divebird"
-RELEASES_URL = REPO_URL + "/releases/latest"
+RELEASES_URL = REPO_URL + "/releases"
 LICENSE_NAME = "MIT License"
 LICENSE_URL = REPO_URL + "/blob/main/LICENSE"
-LATEST_API = "https://api.github.com/repos/acer1204/Divebird/releases/latest"
+# macOS 版獨立發布（標籤 macos-v1.2.3）；releases/latest 是 Windows／Linux 版，要從清單裡找
+LATEST_API = "https://api.github.com/repos/acer1204/Divebird/releases?per_page=100"
+MAC_TAG_PREFIX = "macos-v"
 
 _VERSION = re.compile(r"v?(\d+)\.(\d+)(?:\.(\d+))?")
 
@@ -49,13 +51,17 @@ def latest_release(timeout: float = 10) -> dict:
     if not r.ok:
         raise UpdateCheckError(f"GitHub 回應錯誤（HTTP {r.status_code}）。")
     try:
-        data = r.json()
-        tag = str(data.get("tag_name") or "")
-        url = str(data.get("html_url") or "")
-    except (ValueError, AttributeError):
+        found = []
+        for release in r.json():
+            tag = str(release.get("tag_name") or "")
+            version = parse_version(tag.removeprefix(MAC_TAG_PREFIX)) if tag.startswith(MAC_TAG_PREFIX) else None
+            if version and not release.get("draft") and not release.get("prerelease"):
+                found.append((version, str(release.get("html_url") or "")))
+    except (ValueError, AttributeError, TypeError):
         raise UpdateCheckError("GitHub 回應的內容無法辨識。") from None
-    if not parse_version(tag):
-        raise UpdateCheckError(f"無法辨識最新版本的編號：{tag or '（空白）'}。")
+    if not found:
+        raise UpdateCheckError("GitHub 上還沒有 macOS 正式版本。")
+    version, url = max(found)
     if not url.startswith(REPO_URL + "/"):      # 只開啟本專案的頁面
         url = RELEASES_URL
-    return {"version": tag.strip().lstrip("v"), "url": url}
+    return {"version": ".".join(map(str, version)), "url": url}

@@ -23,13 +23,24 @@ def _release(server, monkeypatch, payload, status_path="/latest"):
 
 
 def test_latest_release(server, monkeypatch):
-    _release(server, monkeypatch, {"tag_name": "v9.8.7", "html_url": about.REPO_URL + "/releases/tag/v9.8.7"})
-    assert about.latest_release() == {"version": "9.8.7", "url": about.REPO_URL + "/releases/tag/v9.8.7"}
+    page = about.REPO_URL + "/releases/tag/macos-v9.8.7"
+    # 同一個專案還有 Windows／Linux 的 v* 版本、草稿與預先發行版，都要略過
+    _release(server, monkeypatch, [
+        {"tag_name": "v99.0.0", "html_url": about.REPO_URL + "/releases/tag/v99.0.0"},
+        {"tag_name": "macos-v99.0.0", "draft": True, "html_url": page},
+        {"tag_name": "macos-v98.0.0", "prerelease": True, "html_url": page},
+        {"tag_name": "macos-v1.0.0", "html_url": about.REPO_URL + "/releases/tag/macos-v1.0.0"},
+        {"tag_name": "macos-v9.8.7", "html_url": page},
+    ])
+    assert about.latest_release() == {"version": "9.8.7", "url": page}
     # 回應裡的網址不是本專案的頁面時，改開 Releases 頁面
-    _release(server, monkeypatch, {"tag_name": "v9.8.7", "html_url": "https://evil.example.com/"})
+    _release(server, monkeypatch, [{"tag_name": "macos-v9.8.7", "html_url": "https://evil.example.com/"}])
     assert about.latest_release()["url"] == about.RELEASES_URL
-    _release(server, monkeypatch, {"tag_name": "latest-build"})
-    with pytest.raises(about.UpdateCheckError):
+    _release(server, monkeypatch, [{"tag_name": "v9.8.7"}, {"tag_name": "macos-vlatest"}])
+    with pytest.raises(about.UpdateCheckError, match="還沒有 macOS"):
+        about.latest_release()
+    _release(server, monkeypatch, {"message": "rate limited"})
+    with pytest.raises(about.UpdateCheckError, match="無法辨識"):
         about.latest_release()
     monkeypatch.setattr(about, "LATEST_API", server.url("/missing"))
     with pytest.raises(about.UpdateCheckError, match="還沒有正式版本"):

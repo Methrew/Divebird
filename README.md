@@ -95,7 +95,7 @@ Divebird 是開源、跨平台（Windows／macOS／Linux）的下載管理員，
 
 #### 方式一：下載免安裝版（推薦）
 
-到 [Releases](https://github.com/acer1204/Divebird/releases/latest) 下載對應的檔案：
+到 [Releases](https://github.com/acer1204/Divebird/releases) 下載對應的檔案（macOS 版的標籤以 `macos-v` 開頭）：
 
 | 系統 | 檔案 | 執行方式 |
 | --- | --- | --- |
@@ -221,7 +221,7 @@ Divebird 內建 [MCP](https://modelcontextprotocol.io/)（Model Context Protocol
   ```
 
   打包腳本會以 hardened runtime 簽章所有程式（內附的 deno 另外給它需要的 JIT 權限）、檢查每個程式的簽章、送 Apple 公證（約需數分鐘），並把公證結果附在 App 與 .dmg 上。這樣的 .dmg 分享給別人，對方只會看到一般的「從網際網路下載」確認視窗。只設定 `DIVEBIRD_SIGN_IDENTITY` 時只簽章、不公證。打包前會先試簽一個小檔案；第一次使用這個憑證時，系統可能會詢問是否允許 codesign 使用鑰匙圈裡的金鑰，請輸入 Mac 的登入密碼並按「永遠允許」，否則打包時每個檔案都會再問一次。
-- 推送 `v` 開頭的標籤（例如 `v1.0.1`）時，GitHub Actions 會在 Windows、Ubuntu 22.04 與 macOS（Apple Silicon）上建置、測試，並自動發佈到 Releases。
+- 在 `macos` 分支推送 `macos-v` 開頭的標籤（例如 `macos-v1.2.3`）時，GitHub Actions 會在 macOS（Apple Silicon）上建置、測試，並發佈到 Releases（不會標成 Latest）。Windows 與 Linux 版由 `main` 的 `v` 開頭標籤發佈。
 
 ### 開發與測試
 
@@ -358,7 +358,7 @@ The app's interface is currently available only in Traditional Chinese. UI label
 
 #### Option 1: download a prebuilt package (recommended)
 
-Download the file for your system from [Releases](https://github.com/acer1204/Divebird/releases/latest):
+Download the file for your system from [Releases](https://github.com/acer1204/Divebird/releases) (macOS tags start with `macos-v`):
 
 | System | File | How to run |
 | --- | --- | --- |
@@ -484,7 +484,7 @@ Divebird has a built-in [MCP](https://modelcontextprotocol.io/) (Model Context P
   ```
 
   The build script signs every program with the hardened runtime (the bundled deno gets the JIT entitlement it needs), checks every signature, notarizes with Apple (takes a few minutes), and staples the result to the app and the .dmg. People you share that .dmg with only see the usual "downloaded from the internet" confirmation. With only `DIVEBIRD_SIGN_IDENTITY` set, the build is signed but not notarized. Before building, the script test-signs a small file; the first time the certificate is used, macOS may ask whether codesign can use the key in your keychain: enter your login password and click Always Allow, or it will ask again for every file during the build.
-- Pushing a tag that starts with `v` (for example `v1.0.1`) makes GitHub Actions build and test on Windows, Ubuntu 22.04 and macOS (Apple Silicon), then publish the packages to Releases.
+- On the `macos` branch, pushing a tag that starts with `macos-v` (for example `macos-v1.2.3`) makes GitHub Actions build and test on macOS (Apple Silicon) and publish to Releases (not marked Latest). Windows and Linux packages are published from `v` tags on `main`.
 
 ### Development and testing
 
