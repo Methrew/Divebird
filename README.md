@@ -108,6 +108,7 @@ Divebird 是開源、跨平台（Windows／Linux）的下載管理員，支援�
   - `install.sh` 會將程式安裝到 `~/.local/share/divebird`，在應用程式選單建立捷徑、建立 `divebird` 指令，並設定登入時自動啟動（若不需要自動啟動，請改為執行 `./Divebird/install.sh --no-autostart`）。
   - 解除安裝：刪除 `~/.local/share/divebird`、`~/.local/share/applications/divebird.desktop`、`~/.config/autostart/divebird.desktop` 與 `~/.local/bin/divebird`。
   - GNOME 預設沒有系統匣，可安裝 GNOME 擴充套件「AppIndicator and KStatusNotifierItem Support」；沒有系統匣時，關閉視窗會改為最小化到工作列（按 **Ctrl+Q** 結束程式）。
+- **macOS**：Mac 版（Apple Silicon，macOS 15 以上）從 `macos` 分支另外發佈。請在 [Releases](https://github.com/acer1204/Divebird/releases) 找標籤以 `macos-v` 開頭的最新版本，下載 `Divebird-<版本>-macos-arm64.dmg`；安裝與使用說明見 [`macos` 分支的 README](https://github.com/acer1204/Divebird/tree/macos#繁體中文)。
 - 每個版本都附有 `SHA256SUMS.txt`，可用來驗證下載的檔案是否完整。
 
 #### 方式二：從原始碼執行
@@ -347,6 +348,7 @@ Download the file for your system from [Releases](https://github.com/acer1204/Di
   - `install.sh` installs Divebird to `~/.local/share/divebird`, adds an application-menu entry and a `divebird` command, and sets Divebird to start automatically at login (to skip autostart, run `./Divebird/install.sh --no-autostart` instead).
   - To uninstall, delete `~/.local/share/divebird`, `~/.local/share/applications/divebird.desktop`, `~/.config/autostart/divebird.desktop` and `~/.local/bin/divebird`.
   - GNOME has no system tray by default; you can add one with the "AppIndicator and KStatusNotifierItem Support" extension. Without a tray, closing the window minimizes it to the taskbar instead of hiding it in the tray (press **Ctrl+Q** to quit).
+- **macOS**: the Mac version (Apple Silicon, macOS 15 or later) is released from the `macos` branch, separately from the Windows and Linux versions. Download `Divebird-<version>-macos-arm64.dmg` from the newest release on [Releases](https://github.com/acer1204/Divebird/releases) whose tag starts with `macos-v`, and see the [README on the `macos` branch](https://github.com/acer1204/Divebird/tree/macos#english) for installation and usage.
 - Every release includes `SHA256SUMS.txt` so you can verify your download.
 
 #### Option 2: run from source
