@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/acer1204/Divebird/releases/latest"><img src="https://img.shields.io/github/v/release/acer1204/Divebird?color=0fa594" alt="Release"></a>
+  <a href="https://github.com/acer1204/Divebird/releases"><img src="https://img.shields.io/github/v/release/acer1204/Divebird?color=0fa594" alt="Release"></a>
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0c6e99" alt="Platform: Windows | macOS | Linux">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0c6e99" alt="License: MIT"></a>
   <a href="https://github.com/acer1204/Divebird/actions/workflows/build.yml"><img src="https://github.com/acer1204/Divebird/actions/workflows/build.yml/badge.svg" alt="Build"></a>
@@ -115,6 +115,7 @@ Divebird 是開源、跨平台（Windows／macOS／Linux）的下載管理員，
   - 請先拖到「應用程式」再開啟。直接在 .dmg 或「下載項目」裡開啟時，系統會讓它在暫存位置執行：無法設定登入時自動啟動，擴充功能的資料夾路徑之後也會失效。
   - Divebird 常駐在螢幕頂端的選單列；關閉視窗後，點 Dock 圖示，或點選單列圖示再選「顯示主視窗」，就能叫回。登入時自動啟動在「設定 → 一般」勾選，可在「系統設定 → 一般 → 登入項目」管理。
   - 第一次下載到「下載項目」時，macOS 會詢問是否允許 Divebird 取用，請按「允許」。下載完成的檔案跟瀏覽器下載的一樣標記為來自網路，開啟其中的 App 或安裝檔時會由 Gatekeeper 檢查。
+  - 更新到新版本：先點選單列的 Divebird 圖示 →「結束 Divebird」；若 AI 應用程式正在使用 `divebird-mcp`，也請先結束該應用程式。接著打開新版的 .dmg，把 Divebird 拖到「應用程式」並選「取代」。設定與下載清單存放在 `~/Library/Application Support/Divebird`，不會遺失。新版同樣沒有公證，開啟前請再執行一次上面的 `xattr` 指令；更新後第一次下載到「下載項目」時，macOS 可能會再詢問一次，請按「允許」。擴充功能的資料夾在 App 裡面，會跟著更新；版本說明提到擴充功能有變動時，請到 `chrome://extensions` 重新載入 Divebird 擴充功能。
   - 解除安裝：刪除「應用程式」中的 Divebird、`~/Library/Application Support/Divebird`，以及 `~/Library/LaunchAgents/io.github.acer1204.divebird.plist`（有開啟登入時自動啟動時）。
 - 每個版本都附有 `SHA256SUMS.txt`，可用來驗證下載的檔案是否完整。
 
@@ -270,7 +271,7 @@ flowchart LR
 ### 常見問題
 
 - **擴充功能顯示「未連線」**：確認 Divebird 桌面程式正在執行（它可能已縮小到系統匣，macOS 為選單列），且桌面程式與擴充功能設定的埠號相同。
-- **某個影片下載失敗**：影音網站常改版，請將 Divebird 更新到[最新版本](https://github.com/acer1204/Divebird/releases/latest)；也可以改用選單中的其他來源試試。
+- **某個影片下載失敗**：影音網站常改版，請將 Divebird 更新到最新版本（Windows／Linux 版見[最新版本](https://github.com/acer1204/Divebird/releases/latest)；macOS 版請在 [Releases](https://github.com/acer1204/Divebird/releases) 找標籤以 `macos-v` 開頭的最新版本）；也可以改用選單中的其他來源試試。
 - **macOS 說 Divebird「已損毀」或無法打開**：發佈的版本沒有 Apple 公證，檔案並沒有損壞。請在終端機執行 `xattr -dr com.apple.quarantine /Applications/Divebird.app`（見上方「下載免安裝版」的 macOS 說明）。
 - **macOS 上下載失敗，顯示「Operation not permitted」**：macOS 沒有允許 Divebird 取用下載資料夾。請到「系統設定 → 隱私權與安全性 → 檔案和檔案夾」允許 Divebird，或在設定中改用其他下載資料夾。
 - **安全性**：本機 API 只監聽 `127.0.0.1`；帶有 `Origin` 標頭的請求只接受來自瀏覽器擴充功能的來源，因此一般網頁無法呼叫。下載完成後，會清除該任務保存的 Cookie（不影響瀏覽器本身的 Cookie）。
@@ -378,6 +379,7 @@ Download the file for your system from [Releases](https://github.com/acer1204/Di
   - Drag it to Applications before opening it. Opened straight from the disk image or from Downloads, it runs from a temporary location: start at login can't be set up, and the extension folder path stops working later.
   - Divebird lives in the menu bar at the top of the screen; after closing the window, click the Dock icon, or click the menu bar icon and choose "顯示主視窗" (show main window), to bring it back. Turn on start at login in Settings → "一般" (General); you can manage it in System Settings → General → Login Items.
   - The first time Divebird saves to your Downloads folder, macOS asks whether to allow it; click "Allow". Finished downloads are marked as coming from the internet, just like browser downloads, so Gatekeeper checks apps and installers in them when you open them.
+  - To update, first click the Divebird icon in the menu bar → "結束 Divebird" (Quit Divebird); if an AI app is using `divebird-mcp`, quit that app too. Then open the new .dmg, drag Divebird to Applications and choose "Replace". Settings and the download list live in `~/Library/Application Support/Divebird` and are kept. The new version isn't notarized either, so run the `xattr` command above again before opening it; the first time it saves to your Downloads folder after the update, macOS may ask again: click "Allow". The extension folder is inside the app, so it is updated too; when the release notes say the extension changed, reload the Divebird extension on `chrome://extensions`.
   - To uninstall, delete Divebird from Applications, `~/Library/Application Support/Divebird`, and `~/Library/LaunchAgents/io.github.acer1204.divebird.plist` (if you turned on start at login).
 - Every release includes `SHA256SUMS.txt` so you can verify your download.
 
@@ -533,7 +535,7 @@ flowchart LR
 ### FAQ
 
 - **The extension says "未連線" (not connected)**: make sure the Divebird desktop app is running (it may be in the system tray, or the menu bar on macOS) and that the app and the extension use the same port.
-- **A video fails to download**: video sites change often, so update Divebird to the [latest release](https://github.com/acer1204/Divebird/releases/latest), or try another source from the menu.
+- **A video fails to download**: video sites change often, so update Divebird to the newest version (Windows / Linux: the [latest release](https://github.com/acer1204/Divebird/releases/latest); macOS: the newest release on [Releases](https://github.com/acer1204/Divebird/releases) whose tag starts with `macos-v`), or try another source from the menu.
 - **macOS says Divebird "is damaged" or can't be opened**: released builds are not notarized by Apple; the file is fine. Run `xattr -dr com.apple.quarantine /Applications/Divebird.app` in Terminal (see the macOS notes under "Download a prebuilt package").
 - **Downloads fail on macOS with "Operation not permitted"**: macOS has not allowed Divebird to use the download folder. Allow Divebird in System Settings → Privacy & Security → Files & Folders, or choose another download folder in the settings.
 - **Security**: the local API listens on `127.0.0.1` only. Requests that carry an `Origin` header are accepted only from browser extensions, so ordinary web pages cannot call it. The cookies stored with a download are deleted once that download finishes; your browser's own cookies are not touched.
