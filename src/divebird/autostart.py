@@ -3,7 +3,7 @@ r"""開機 / 登入時自動啟動（縮小到系統匣），讓瀏覽器擴充�
 - Windows：HKCU\Software\Microsoft\Windows\CurrentVersion\Run
   （使用者在「工作管理員 → 啟動應用程式」停用時，Windows 另外記在 StartupApproved\Run）
 - macOS：~/Library/LaunchAgents/io.github.acer1204.divebird.plist（launchd 的使用者 LaunchAgent）
-  （使用者在「系統設定 → 一般 → 登入項目」關閉時，launchd 會把它標記為停用）
+  （使用者在「系統設定 → 一般 → 登入項目」（macOS 15 為「登入項目與延伸功能」）關閉時，launchd 會把它標記為停用）
 - Linux：~/.config/autostart/divebird.desktop（XDG Autostart）
 """
 from __future__ import annotations

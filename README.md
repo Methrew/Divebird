@@ -11,7 +11,7 @@
 
 <p align="center">
   <a href="https://github.com/acer1204/Divebird/releases/latest"><img src="https://img.shields.io/github/v/release/acer1204/Divebird?color=0fa594" alt="Release"></a>
-  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux-0c6e99" alt="Platform: Windows | Linux">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS%20%7C%20Linux-0c6e99" alt="Platform: Windows | macOS | Linux">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-0c6e99" alt="License: MIT"></a>
   <a href="https://github.com/acer1204/Divebird/actions/workflows/build.yml"><img src="https://github.com/acer1204/Divebird/actions/workflows/build.yml/badge.svg" alt="Build"></a>
 </p>
@@ -29,7 +29,7 @@
 
 ## 繁體中文
 
-Divebird 是開源、跨平台（Windows／Linux）的下載管理員，支援多連線下載與斷點續傳，還能一鍵下載網頁影片。搭配隨附的 Chrome 擴充功能，在網頁上播放影片時，影片右上角會出現「**下載此影片**」按鈕，點一下就交給 Divebird 下載。
+Divebird 是開源、跨平台（Windows／macOS／Linux）的下載管理員，支援多連線下載與斷點續傳，還能一鍵下載網頁影片。搭配隨附的 Chrome 擴充功能，在網頁上播放影片時，影片右上角會出現「**下載此影片**」按鈕，點一下就交給 Divebird 下載。
 
 > 名字的由來：鰹鳥看準海裡的魚，收起翅膀俯衝，一次就叼走。Divebird 也是這樣——看準網頁上的影片，一鍵下載。
 
@@ -42,10 +42,10 @@ Divebird 是開源、跨平台（Windows／Linux）的下載管理員，支援�
 | **影音網站** | 內建 [yt-dlp](https://github.com/yt-dlp/yt-dlp)，支援上千個影音網站；下載前可選畫質，或只下載音訊（M4A／MP3） |
 | **多連線下載** | 將檔案切成多段，同時以多條連線下載（預設 8 條）；先完成的連線會把剩餘最多的分段從中間切開、接手後半段，讓每條連線都保持忙碌 |
 | **斷點續傳** | 暫停、斷線或關閉程式後，都能從中斷處繼續（伺服器需支援續傳） |
-| **攔截瀏覽器下載** | 一般檔案的下載會自動轉交 Divebird 多連線下載；按住 **Alt** 再點連結，則改由瀏覽器自行下載 |
+| **攔截瀏覽器下載** | 一般檔案的下載會自動轉交 Divebird 多連線下載；按住 **Alt**（Mac 為 **Option**）再點連結，則改由瀏覽器自行下載 |
 | **內建執行環境** | 免安裝版已內含 Python、Qt、yt-dlp、FFmpeg、Deno，不需要另外安裝任何軟體 |
 | **AI 整合（MCP）** | 支援 MCP 的 AI 工具可以請 Divebird 下載、查詢進度；權限可在設定中控制，AI 發起的下載預設要經你確認 |
-| **其他** | 下載佇列、同時下載數與全域限速、分類與搜尋、拖曳網址、系統匣、完成通知、登入時自動啟動、深色模式、檢查更新 |
+| **其他** | 下載佇列、同時下載數與全域限速、分類與搜尋、拖曳網址、系統匣（macOS 為選單列）、完成通知、登入時自動啟動、深色模式、檢查更新 |
 
 ### 截圖
 
@@ -101,6 +101,7 @@ Divebird 是開源、跨平台（Windows／Linux）的下載管理員，支援�
 | --- | --- | --- |
 | Windows 10／11（64 位元） | `Divebird-<版本>-windows-x64.zip` | 解壓縮後，按兩下 `Divebird\Divebird.exe` |
 | Linux x86_64 | `Divebird-<版本>-linux-x86_64.tar.gz` | 解壓縮後執行 `./Divebird/install.sh` |
+| macOS 13 以上（Apple Silicon） | `Divebird-<版本>-macos-arm64.dmg` | 打開後把 Divebird 拖到「應用程式」 |
 
 - **Windows**：程式沒有數位簽章，第一次執行若出現「Windows 已保護您的電腦」，請按「其他資訊」→「仍要執行」。
 - **Linux**：
@@ -108,6 +109,13 @@ Divebird 是開源、跨平台（Windows／Linux）的下載管理員，支援�
   - `install.sh` 會將程式安裝到 `~/.local/share/divebird`，在應用程式選單建立捷徑、建立 `divebird` 指令，並設定登入時自動啟動（若不需要自動啟動，請改為執行 `./Divebird/install.sh --no-autostart`）。
   - 解除安裝：刪除 `~/.local/share/divebird`、`~/.local/share/applications/divebird.desktop`、`~/.config/autostart/divebird.desktop` 與 `~/.local/bin/divebird`。
   - GNOME 預設沒有系統匣，可安裝 GNOME 擴充套件「AppIndicator and KStatusNotifierItem Support」；沒有系統匣時，關閉視窗會改為最小化到工作列（按 **Ctrl+Q** 結束程式）。
+- **macOS**：
+  - 只支援 Apple Silicon（M 系列晶片）的 Mac，需要 macOS 13 以上。
+  - 程式沒有 Apple 的開發者簽章與公證，第一次開啟時會被系統擋下：到「系統設定 → 隱私權與安全性」，在下方按「強制打開」，之後就能正常開啟。也可以在終端機執行 `xattr -dr com.apple.quarantine /Applications/Divebird.app` 後再開啟。
+  - 請先拖到「應用程式」再開啟。直接在 .dmg 或「下載項目」裡開啟時，系統會讓它在暫存位置執行：無法設定登入時自動啟動，擴充功能的資料夾路徑之後也會失效。
+  - Divebird 常駐在螢幕頂端的選單列；關閉視窗後，點 Dock 圖示，或點選單列圖示再選「顯示主視窗」，就能叫回。登入時自動啟動在「設定 → 一般」勾選，可在「系統設定 → 一般 → 登入項目」管理。
+  - 第一次下載到「下載項目」時，macOS 會詢問是否允許 Divebird 取用，請按「允許」。下載完成的檔案跟瀏覽器下載的一樣標記為來自網路，開啟其中的 App 或安裝檔時會由 Gatekeeper 檢查。
+  - 解除安裝：刪除「應用程式」中的 Divebird、`~/Library/Application Support/Divebird`，以及 `~/Library/LaunchAgents/io.github.acer1204.divebird.plist`（有開啟登入時自動啟動時）。
 - 每個版本都附有 `SHA256SUMS.txt`，可用來驗證下載的檔案是否完整。
 
 #### 方式二：從原始碼執行
@@ -121,14 +129,17 @@ cd Divebird
 | --- | --- | --- |
 | Windows | 第一次按兩下 `Divebird.bat`；之後按兩下 `Divebird.exe` | `powershell -ExecutionPolicy Bypass -File scripts\create-shortcut.ps1` |
 | Linux | `./divebird.sh` | `./scripts/create-shortcut.sh` |
+| macOS（Apple Silicon） | `./divebird.sh` | `./scripts/create-shortcut.sh`（建立 `~/Applications/Divebird.app`） |
 
 第一次啟動時，程式會自動在專案資料夾內建立執行環境（需要幾分鐘）：將 [uv](https://github.com/astral-sh/uv)、獨立的 Python 3.12 與所有套件下載到 `.runtime/` 與 `.venv/`，**不會使用或修改系統上的 Python**。之後啟動只要幾秒。
 
 - Windows：建立環境時，也會用 Windows 內建的 .NET Framework 編譯器在專案根目錄產生 `Divebird.exe` 啟動程式。用它啟動不會出現主控台視窗（`.bat` 檔一定會先閃一下黑色視窗）；若系統封鎖編譯器而沒有產生，仍可用 `Divebird.bat` 啟動（不想產生可設定環境變數 `DIVEBIRD_NO_LAUNCHER=1`）。
-- 用 `git pull` 更新後，若相依套件或啟動程式有變動，下次用 `Divebird.exe`、`Divebird.bat`、捷徑或登入自動啟動開啟時，會先自動更新執行環境（會開一個視窗顯示進度）；上次建立環境中斷時也一樣會自動補完。Divebird 正在執行（包括縮小在系統匣）時不會更新，請先結束再開啟。
+- Windows：用 `git pull` 更新後，若相依套件或啟動程式有變動，下次用 `Divebird.exe`、`Divebird.bat`、捷徑或登入自動啟動開啟時，會先自動更新執行環境（會開一個視窗顯示進度）；上次建立環境中斷時也一樣會自動補完。Divebird 正在執行（包括縮小在系統匣）時不會更新，請先結束再開啟。
+- macOS／Linux：用 `git pull` 更新後，請先結束 Divebird，再執行 `./scripts/setup.sh` 更新執行環境。
 - 搬移、改名或複製專案資料夾後，執行環境需要重建：按兩下 `Divebird.exe` 會詢問是否重建（`Divebird.bat` 也會自動偵測），也可以在專案資料夾開啟終端機，執行 `.\Divebird.bat /repair`。重建前請先結束正在執行的 Divebird；重建失敗時會保留原本的環境。
 - Linux 使用 X11 桌面時，需另外安裝系統套件 `libxcb-cursor0`（Ubuntu／Debian：`sudo apt install libxcb-cursor0`；Fedora：`sudo dnf install xcb-util-cursor`；Arch：`sudo pacman -S xcb-util-cursor`）。免安裝版已內含，不需要安裝。
-- 刪除專案資料夾即可移除執行環境；設定與下載清單存放在 `%APPDATA%\Divebird\`／`~/.config/divebird/`，建立過的捷徑與登入自動啟動需另外移除。
+- macOS：`./scripts/create-shortcut.sh` 建立的 `~/Applications/Divebird.app` 可從 Launchpad、Spotlight 開啟，也能拖到 Dock。從原始碼執行時不會顯示系統通知（macOS 只讓 App 傳送通知），打包版沒有這個限制。
+- 刪除專案資料夾即可移除執行環境；設定與下載清單存放在 `%APPDATA%\Divebird\`、`~/Library/Application Support/Divebird/`（macOS）或 `~/.config/divebird/`（Linux），建立過的捷徑與登入自動啟動需另外移除。
 
 ### 安裝 Chrome 擴充功能
 
@@ -139,6 +150,7 @@ cd Divebird
 3. 按「**載入未封裝項目**」，選擇 `extension` 資料夾：
    - 免安裝版：`Divebird/extension`
    - Linux 執行 `install.sh` 後：`~/.local/share/divebird/extension`
+   - macOS：`/Applications/Divebird.app/Contents/Resources/extension`。在 Divebird 的「設定 → 瀏覽器整合」按「複製路徑」，再到「載入未封裝項目」的視窗按 **⌘⇧G** 貼上；也可以按「在 Finder 中顯示」
    - 從原始碼執行：專案根目錄的 `extension`
 4. 建議點工具列上的拼圖圖示（擴充功能），將 Divebird 固定到工具列。
 
@@ -152,7 +164,7 @@ cd Divebird
   - 偵測到多個來源：跳出選單讓你選。上方是這部影片的串流（HLS／DASH／MP4，或以 yt-dlp 解析整個網頁），網頁上其他影片的來源收在「此網頁的其他影音」。同一頁有多部串流影片時，依影片開始載入的時間推測；找不到時，先播放幾秒再按一次。
   - 沒偵測到影片檔或串流（例如 YouTube）：整個網頁交給 yt-dlp 解析，再於 Divebird 視窗中選擇畫質。
 - **右鍵選單**：在連結或影片／音訊上按右鍵，選擇「用 Divebird 下載此連結」或「用 Divebird 下載此影片／音訊」；在網頁空白處按右鍵，選擇「用 Divebird 解析此頁面的影片」。
-- **攔截瀏覽器下載**：一般檔案的下載會自動轉交 Divebird，右鍵「另存連結為…」也一樣，不會再跳出瀏覽器的存檔視窗；按住 **Alt** 再點連結，則由瀏覽器自行下載。可在彈出視窗中關閉此功能。
+- **攔截瀏覽器下載**：一般檔案的下載會自動轉交 Divebird，右鍵「另存連結為…」也一樣，不會再跳出瀏覽器的存檔視窗；按住 **Alt**（Mac 為 **Option**）再點連結，則由瀏覽器自行下載。可在彈出視窗中關閉此功能。
 - **桌面程式**：按「新增網址」或直接把連結拖曳到視窗；在清單上按右鍵可開啟檔案、重新下載、複製網址。點下載完成的通知會打開 Divebird，並選取那筆下載。
 - **檢查更新**：按工具列的「關於」，再按「檢查更新」。有新版本時會詢問是否開啟 GitHub 的下載頁面；只有按下按鈕時才會連線查詢。
 
@@ -160,12 +172,12 @@ cd Divebird
 
 ### 設定與資料位置
 
-| 項目 | Windows | Linux |
-| --- | --- | --- |
-| 設定、下載清單 | `%APPDATA%\Divebird\` | `~/.config/divebird/` |
-| 預設下載資料夾 | `下載`（`%USERPROFILE%\Downloads`） | XDG 下載資料夾（例如 `~/下載`） |
+| 項目 | Windows | macOS | Linux |
+| --- | --- | --- | --- |
+| 設定、下載清單 | `%APPDATA%\Divebird\` | `~/Library/Application Support/Divebird/` | `~/.config/divebird/` |
+| 預設下載資料夾 | `下載`（`%USERPROFILE%\Downloads`） | 「下載項目」（`~/Downloads`） | XDG 下載資料夾（例如 `~/下載`） |
 
-- **可攜模式**（免安裝版）：在 `Divebird.exe`（Linux 為 `Divebird`）所在的資料夾中，建立一個名為 `portable`、沒有副檔名的空檔案（`portable.txt` 無效），設定與下載清單就會改存放在程式旁的 `data/` 資料夾。
+- **可攜模式**（Windows、Linux 免安裝版）：在 `Divebird.exe`（Linux 為 `Divebird`）所在的資料夾中，建立一個名為 `portable`、沒有副檔名的空檔案（`portable.txt` 無效），設定與下載清單就會改存放在程式旁的 `data/` 資料夾。
 - 桌面程式與擴充功能透過本機的 `127.0.0.1:17890` 連線。若在 Divebird 設定中變更了「本機 API 埠號」，請在擴充功能彈出視窗的「Divebird 連接埠」欄位填入相同的數字。
 
 ### AI 整合（MCP）
@@ -182,13 +194,13 @@ Divebird 內建 [MCP](https://modelcontextprotocol.io/)（Model Context Protocol
    | VS Code（mcp.json） | VS Code | 使用者設定或 `.vscode/mcp.json` |
 
    連線網址是 `http://127.0.0.1:17890/mcp`，以 `Authorization: Bearer <存取權杖>` 驗證。權杖顯示在同一頁，等同密碼，請勿分享。
-3. 只能用 stdio 啟動 MCP 伺服器的 AI 應用程式：指令設為免安裝版資料夾裡的 `divebird-mcp`（Windows 為 `divebird-mcp.exe`），不需要參數與權杖；從原始碼執行時，改用 `.venv` 裡的 Python 執行 `-m divebird.mcp`。Divebird 沒在執行時，會自動在背景啟動。
+3. 只能用 stdio 啟動 MCP 伺服器的 AI 應用程式：指令設為免安裝版資料夾裡的 `divebird-mcp`（Windows 為 `divebird-mcp.exe`；macOS 為 `/Applications/Divebird.app/Contents/MacOS/divebird-mcp`），不需要參數與權杖；從原始碼執行時，改用 `.venv` 裡的 Python 執行 `-m divebird.mcp`。Divebird 沒在執行時，會自動在背景啟動。
 4. 之後就能直接跟 AI 說：「用 Divebird 下載 https://…/master.m3u8，檔名叫第 3 集」。
 
 - **權限**（設定 → AI 整合，啟用 MCP 後才能修改）：AI 發起的下載預設每次都要在 Divebird 跳出的視窗確認，視窗會標示「由 AI 工具發起」；指定子資料夾預設允許；傳入 Cookie 與登入資訊、下載內網位址、刪除檔案預設都不允許。
 - **Skill**：[`skills/divebird/SKILL.md`](skills/divebird/SKILL.md) 是給 AI 的使用提示，把這個資料夾的路徑告訴你的 AI 工具即可。
 - **瀏覽器偵測到的影音**：在「設定 → AI 整合」勾選「提供瀏覽器擴充功能偵測到的影音給 AI」後，AI 可以列出各分頁偵測到的影音並指定下載，需要登入的網站也能下載：Cookie 由擴充功能在下載時補上，不會經過 AI。AI 只看得到網頁標題與網址的主機、路徑，看不到查詢參數；無痕視窗不分享。需要擴充功能 1.1.0 以上（更新後到 `chrome://extensions` 按重新載入）。沒有開放時，需要登入的網站請改用擴充功能的下載按鈕。
-- 支援 MCP 的 2025-03-26 ～ 2025-11-25 與 2026-07-28 兩代協定。Divebird 必須在執行中（可縮小在系統匣），建議開啟登入時自動啟動。
+- 支援 MCP 的 2025-03-26 ～ 2025-11-25 與 2026-07-28 兩代協定。Divebird 必須在執行中（可縮小在系統匣或 macOS 的選單列），建議開啟登入時自動啟動。
 
 ### 自行打包
 
@@ -196,15 +208,17 @@ Divebird 內建 [MCP](https://modelcontextprotocol.io/)（Model Context Protocol
 | --- | --- | --- |
 | Windows | `powershell -ExecutionPolicy Bypass -File scripts\build.ps1` | `dist\Divebird\`、`dist\Divebird-<版本>-windows-x64.zip` |
 | Linux | `./scripts/build.sh` | `dist/Divebird/`、`dist/Divebird-<版本>-linux-<架構>.tar.gz`（例如 `linux-x86_64`） |
+| macOS（Apple Silicon） | `./scripts/build.sh` | `dist/Divebird.app`、`dist/Divebird-<版本>-macos-arm64.dmg` |
 
 - 尚未建立執行環境時，打包腳本會先自動執行 `scripts/setup.*`。
 - Linux 打包會一併包進建置機器上的系統函式庫，打包出的程式只能在 glibc 版本不低於建置機器的發行版上執行；若要支援更多發行版，請在較舊的系統上建置。
+- macOS 版只支援 Apple Silicon，請在 Apple Silicon 的 Mac 上打包。打包出的 App 只有 ad-hoc 簽章、沒有 Apple 公證；最低系統版本取自內附的 Qt（目前為 macOS 13）。
 - 推送 `v` 開頭的標籤（例如 `v1.0.1`）時，GitHub Actions 會在 Windows 與 Ubuntu 22.04 上建置、測試，並自動發佈到 Releases。
 
 ### 開發與測試
 
 ```bash
-./scripts/test.sh                                           # Linux 單元／整合測試
+./scripts/test.sh                                           # Linux／macOS 單元／整合測試
 powershell -ExecutionPolicy Bypass -File scripts\test.ps1   # Windows 單元／整合測試
 ```
 
@@ -215,7 +229,7 @@ powershell -ExecutionPolicy Bypass -File scripts\test.ps1   # Windows 單元／�
   .runtime/uv/uv run --no-project --with playwright python tests/e2e/run_extension_e2e.py
   ```
 
-- 打包版煙霧測試：`.venv/bin/python tests/smoke_package.py dist/Divebird/Divebird`（Windows：`.venv\Scripts\python.exe tests\smoke_package.py dist\Divebird\Divebird.exe`）
+- 打包版煙霧測試：`.venv/bin/python tests/smoke_package.py dist/Divebird/Divebird`（macOS：`.venv/bin/python tests/smoke_package.py dist/Divebird.app/Contents/MacOS/Divebird`；Windows：`.venv\Scripts\python.exe tests\smoke_package.py dist\Divebird\Divebird.exe`）
 - 更新 README 截圖（「關於」與設定頁上有版本號，發布前執行）：`.venv/bin/python scripts/readme_screenshots.py`（Windows：`.venv\Scripts\python.exe scripts\readme_screenshots.py`）
 
 ### 架構
@@ -231,7 +245,7 @@ flowchart LR
   end
   subgraph APP["Divebird 桌面程式（src/divebird/）"]
     S["server.py<br>本機 API 127.0.0.1:17890"]
-    G["gui/<br>PySide6 介面、系統匣"]
+    G["gui/<br>PySide6 介面、系統匣／選單列"]
     M["engine/manager.py<br>佇列、排程、續傳"]
     H["engine/http_engine.py<br>多連線動態分段"]
     E["engine/media_engine.py<br>yt-dlp + FFmpeg"]
@@ -247,8 +261,10 @@ flowchart LR
 
 ### 常見問題
 
-- **擴充功能顯示「未連線」**：確認 Divebird 桌面程式正在執行（它可能已縮小到系統匣），且桌面程式與擴充功能設定的埠號相同。
+- **擴充功能顯示「未連線」**：確認 Divebird 桌面程式正在執行（它可能已縮小到系統匣，macOS 為選單列），且桌面程式與擴充功能設定的埠號相同。
 - **某個影片下載失敗**：影音網站常改版，請將 Divebird 更新到[最新版本](https://github.com/acer1204/Divebird/releases/latest)；也可以改用選單中的其他來源試試。
+- **macOS 說無法打開 Divebird**：程式沒有 Apple 公證，請到「系統設定 → 隱私權與安全性」按「強制打開」（見上方「下載免安裝版」的 macOS 說明）。
+- **macOS 上下載失敗，顯示「Operation not permitted」**：macOS 沒有允許 Divebird 取用下載資料夾。請到「系統設定 → 隱私權與安全性 → 檔案和檔案夾」允許 Divebird，或在設定中改用其他下載資料夾。
 - **安全性**：本機 API 只監聽 `127.0.0.1`；帶有 `Origin` 標頭的請求只接受來自瀏覽器擴充功能的來源，因此一般網頁無法呼叫。下載完成後，會清除該任務保存的 Cookie（不影響瀏覽器本身的 Cookie）。
 
 ### 限制
@@ -266,7 +282,7 @@ Divebird 以 [MIT 授權](LICENSE) 釋出。免安裝版隨附的第三方元件
 
 ## English
 
-Divebird is an open-source, cross-platform (Windows / Linux) download manager with multi-connection downloads, resume support, and one-click downloads of web videos. With the bundled Chrome extension, a "**下載此影片**" (Download this video) button appears in the top-right corner of any video you play in the browser — click it and Divebird takes over.
+Divebird is an open-source, cross-platform (Windows / macOS / Linux) download manager with multi-connection downloads, resume support, and one-click downloads of web videos. With the bundled Chrome extension, a "**下載此影片**" (Download this video) button appears in the top-right corner of any video you play in the browser — click it and Divebird takes over.
 
 > Why the name? A gannet spots a fish, folds its wings, dives, and catches it in one move. Divebird does the same: spot a video on the page and grab it with one click.
 
@@ -281,10 +297,10 @@ The app's interface is currently available only in Traditional Chinese. UI label
 | **Video sites** | Bundles [yt-dlp](https://github.com/yt-dlp/yt-dlp), which supports more than a thousand video sites; choose the quality before downloading, or grab audio only (M4A / MP3) |
 | **Multi-connection downloads** | Splits a file into segments and downloads them over several connections at once (8 by default); when a connection finishes, it takes over half of the segment with the most data left, so every connection stays busy |
 | **Resume** | Pick up where you left off after pausing, losing the connection, or closing the app (if the server supports resuming) |
-| **Browser download takeover** | Regular file downloads are handed to Divebird automatically; hold **Alt** while clicking a link to let the browser download it instead |
+| **Browser download takeover** | Regular file downloads are handed to Divebird automatically; hold **Alt** (**Option** on a Mac) while clicking a link to let the browser download it instead |
 | **Self-contained** | The prebuilt packages ship with Python, Qt, yt-dlp, FFmpeg and Deno, so there is nothing else to install |
 | **AI integration (MCP)** | MCP-capable AI tools can ask Divebird to download and check progress; permissions are set in Divebird, and AI-initiated downloads need your approval by default |
-| **And more** | Download queue, limits on simultaneous downloads and total speed, categories and search, drag-and-drop URLs, system tray, completion notifications, start at login, dark mode, update check |
+| **And more** | Download queue, limits on simultaneous downloads and total speed, categories and search, drag-and-drop URLs, system tray (menu bar on macOS), completion notifications, start at login, dark mode, update check |
 
 ### Screenshots
 
@@ -340,6 +356,7 @@ Download the file for your system from [Releases](https://github.com/acer1204/Di
 | --- | --- | --- |
 | Windows 10 / 11 (64-bit) | `Divebird-<version>-windows-x64.zip` | Unzip it and double-click `Divebird\Divebird.exe` |
 | Linux x86_64 | `Divebird-<version>-linux-x86_64.tar.gz` | Extract it and run `./Divebird/install.sh` |
+| macOS 13 or later (Apple Silicon) | `Divebird-<version>-macos-arm64.dmg` | Open it and drag Divebird to Applications |
 
 - **Windows**: the app is not code-signed. If SmartScreen shows "Windows protected your PC", click "More info" → "Run anyway".
 - **Linux**:
@@ -347,6 +364,13 @@ Download the file for your system from [Releases](https://github.com/acer1204/Di
   - `install.sh` installs Divebird to `~/.local/share/divebird`, adds an application-menu entry and a `divebird` command, and sets Divebird to start automatically at login (to skip autostart, run `./Divebird/install.sh --no-autostart` instead).
   - To uninstall, delete `~/.local/share/divebird`, `~/.local/share/applications/divebird.desktop`, `~/.config/autostart/divebird.desktop` and `~/.local/bin/divebird`.
   - GNOME has no system tray by default; you can add one with the "AppIndicator and KStatusNotifierItem Support" extension. Without a tray, closing the window minimizes it to the taskbar instead of hiding it in the tray (press **Ctrl+Q** to quit).
+- **macOS**:
+  - Only Macs with Apple Silicon (M-series chips) are supported, running macOS 13 or later.
+  - The app is not signed with an Apple Developer ID or notarized, so macOS blocks it the first time you open it: go to System Settings → Privacy & Security and click "Open Anyway" near the bottom; after that it opens normally. Alternatively, run `xattr -dr com.apple.quarantine /Applications/Divebird.app` in Terminal and open it again.
+  - Drag it to Applications before opening it. Opened straight from the disk image or from Downloads, it runs from a temporary location: start at login can't be set up, and the extension folder path stops working later.
+  - Divebird lives in the menu bar at the top of the screen; after closing the window, click the Dock icon, or click the menu bar icon and choose "顯示主視窗" (show main window), to bring it back. Turn on start at login in Settings → "一般" (General); you can manage it in System Settings → General → Login Items.
+  - The first time Divebird saves to your Downloads folder, macOS asks whether to allow it; click "Allow". Finished downloads are marked as coming from the internet, just like browser downloads, so Gatekeeper checks apps and installers in them when you open them.
+  - To uninstall, delete Divebird from Applications, `~/Library/Application Support/Divebird`, and `~/Library/LaunchAgents/io.github.acer1204.divebird.plist` (if you turned on start at login).
 - Every release includes `SHA256SUMS.txt` so you can verify your download.
 
 #### Option 2: run from source
@@ -360,14 +384,17 @@ cd Divebird
 | --- | --- | --- |
 | Windows | Double-click `Divebird.bat` the first time, then `Divebird.exe` | `powershell -ExecutionPolicy Bypass -File scripts\create-shortcut.ps1` |
 | Linux | `./divebird.sh` | `./scripts/create-shortcut.sh` |
+| macOS (Apple Silicon) | `./divebird.sh` | `./scripts/create-shortcut.sh` (creates `~/Applications/Divebird.app`) |
 
 The first launch sets up a self-contained environment inside the project folder, which takes a few minutes: [uv](https://github.com/astral-sh/uv), a standalone Python 3.12 and all packages are downloaded into `.runtime/` and `.venv/`. **Your system Python is neither used nor modified.** Later launches take a few seconds.
 
 - On Windows, setup also uses the .NET Framework compiler built into Windows to create a `Divebird.exe` launcher in the project folder. It starts Divebird without any console window (a `.bat` file always flashes one). If the compiler is blocked and the launcher is not created, `Divebird.bat` still works (set the environment variable `DIVEBIRD_NO_LAUNCHER=1` to skip it).
-- After a `git pull` that changes the dependencies or the launcher, the next launch through `Divebird.exe`, `Divebird.bat`, the shortcut or login autostart updates the environment first (a window shows the progress); an interrupted setup is completed the same way. Nothing is updated while Divebird is running (including in the system tray), so quit it first.
+- On Windows, after a `git pull` that changes the dependencies or the launcher, the next launch through `Divebird.exe`, `Divebird.bat`, the shortcut or login autostart updates the environment first (a window shows the progress); an interrupted setup is completed the same way. Nothing is updated while Divebird is running (including in the system tray), so quit it first.
+- On macOS / Linux, quit Divebird and run `./scripts/setup.sh` after a `git pull` to update the environment.
 - After the project folder is moved, renamed or copied, the environment has to be rebuilt: `Divebird.exe` offers to do it (`Divebird.bat` detects it too), or open a terminal in the project folder and run `.\Divebird.bat /repair`. Quit Divebird before rebuilding; if the rebuild fails, the previous environment is kept.
 - On a Linux X11 desktop, install the system package `libxcb-cursor0` (Ubuntu / Debian: `sudo apt install libxcb-cursor0`; Fedora: `sudo dnf install xcb-util-cursor`; Arch: `sudo pacman -S xcb-util-cursor`). The prebuilt package already includes it.
-- Deleting the project folder removes the runtime environment. Settings and the download list stay in `%APPDATA%\Divebird\` / `~/.config/divebird/`, and any shortcuts or login autostart entry you created must be removed separately.
+- On macOS, the `~/Applications/Divebird.app` made by `./scripts/create-shortcut.sh` can be opened from Launchpad or Spotlight, or kept in the Dock. System notifications are not shown when running from source (macOS only lets apps send notifications); the prebuilt app does not have this limitation.
+- Deleting the project folder removes the runtime environment. Settings and the download list stay in `%APPDATA%\Divebird\`, `~/Library/Application Support/Divebird/` (macOS) or `~/.config/divebird/` (Linux), and any shortcuts or login autostart entry you created must be removed separately.
 
 ### Install the Chrome extension
 
@@ -378,6 +405,7 @@ The extension is included in the prebuilt packages and the source code. It is no
 3. Click **Load unpacked** and select the `extension` folder:
    - Prebuilt package: `Divebird/extension`
    - Linux after `install.sh`: `~/.local/share/divebird/extension`
+   - macOS: `/Applications/Divebird.app/Contents/Resources/extension`. In Divebird, open Settings → "瀏覽器整合" (browser integration) and click "複製路徑" (copy path), then press **⌘⇧G** in the Load unpacked dialog and paste it; or click "在 Finder 中顯示" (show in Finder)
    - Running from source: `extension` in the project root
 4. (Recommended) Click the puzzle-piece icon in the toolbar and pin Divebird.
 
@@ -391,7 +419,7 @@ The extension needs the Divebird desktop app to be running. Click the Divebird i
   - If several sources are found, a menu lets you choose. This video's streams (HLS / DASH / MP4, or let yt-dlp analyze the whole page) come first; sources of other videos on the page are folded under "此網頁的其他影音" (other media on this page). When a page has several streaming videos, Divebird matches them by the time each video started loading; if nothing matches, play the video for a few seconds and click again.
   - If no file or stream is detected (e.g. on YouTube), the whole page goes to yt-dlp and you choose the quality in the Divebird window.
 - **Context menu**: right-click a link or a video/audio element and choose "用 Divebird 下載此連結" (download this link) or "用 Divebird 下載此影片／音訊" (download this video/audio); right-click the page and choose "用 Divebird 解析此頁面的影片" (find videos on this page).
-- **Browser download takeover**: regular file downloads are handed to Divebird, including "Save link as…" from the context menu, without the browser's own save dialog; hold **Alt** while clicking a link to let the browser download it instead. You can turn this off in the popup.
+- **Browser download takeover**: regular file downloads are handed to Divebird, including "Save link as…" from the context menu, without the browser's own save dialog; hold **Alt** (**Option** on a Mac) while clicking a link to let the browser download it instead. You can turn this off in the popup.
 - **Desktop app**: click "新增網址" (add URL) or drag a link into the window; right-click an item to open the file, download it again or copy its URL. Clicking a "download finished" notification opens Divebird with that download selected.
 - **Check for updates**: click "關於" (About) on the toolbar, then "檢查更新" (check for updates). If a newer version exists, Divebird asks whether to open its download page on GitHub; it only goes online when you click the button.
 
@@ -399,12 +427,12 @@ When Divebird receives a download, it first shows the "下載檔案資訊" (down
 
 ### Settings and data
 
-| Item | Windows | Linux |
-| --- | --- | --- |
-| Settings and download list | `%APPDATA%\Divebird\` | `~/.config/divebird/` |
-| Default download folder | `%USERPROFILE%\Downloads` | Your Downloads folder (XDG, e.g. `~/Downloads`) |
+| Item | Windows | macOS | Linux |
+| --- | --- | --- | --- |
+| Settings and download list | `%APPDATA%\Divebird\` | `~/Library/Application Support/Divebird/` | `~/.config/divebird/` |
+| Default download folder | `%USERPROFILE%\Downloads` | `~/Downloads` | Your Downloads folder (XDG, e.g. `~/Downloads`) |
 
-- **Portable mode** (prebuilt packages): put an empty file named `portable` (no extension; `portable.txt` will not work) next to `Divebird.exe` (or `Divebird` on Linux), and settings and the download list are stored in a `data/` folder beside the app.
+- **Portable mode** (Windows and Linux prebuilt packages): put an empty file named `portable` (no extension; `portable.txt` will not work) next to `Divebird.exe` (or `Divebird` on Linux), and settings and the download list are stored in a `data/` folder beside the app.
 - The desktop app and the extension communicate locally over `127.0.0.1:17890`. If you change "本機 API 埠號" (local API port) in the app's settings, enter the same number in "Divebird 連接埠" (Divebird port) in the extension popup.
 
 ### AI integration (MCP)
@@ -421,13 +449,13 @@ Divebird has a built-in [MCP](https://modelcontextprotocol.io/) (Model Context P
    | VS Code (mcp.json) | VS Code | user settings or `.vscode/mcp.json` |
 
    The endpoint is `http://127.0.0.1:17890/mcp`, authenticated with `Authorization: Bearer <access token>`. The token is shown on the same tab; treat it like a password.
-3. AI applications that can only start MCP servers over stdio: use `divebird-mcp` (`divebird-mcp.exe` on Windows) from the prebuilt package folder as the command, with no arguments and no token. When running from source, run `-m divebird.mcp` with the Python in `.venv`. If Divebird is not running, it is started in the background.
+3. AI applications that can only start MCP servers over stdio: use `divebird-mcp` (`divebird-mcp.exe` on Windows; `/Applications/Divebird.app/Contents/MacOS/divebird-mcp` on macOS) from the prebuilt package folder as the command, with no arguments and no token. When running from source, run `-m divebird.mcp` with the Python in `.venv`. If Divebird is not running, it is started in the background.
 4. Then just ask the AI: "Download https://…/master.m3u8 with Divebird and name it Episode 3".
 
 - **Permissions** (Settings → AI integration, editable once MCP is enabled): by default every AI-initiated download must be approved in a Divebird window that says it came from an AI tool; sub-folders are allowed; passing cookies and login headers, private-network addresses and deleting files are not allowed.
 - **Skill**: [`skills/divebird/SKILL.md`](skills/divebird/SKILL.md) contains usage hints for AI agents; point your AI tool at that folder.
 - **Media detected in the browser**: tick "提供瀏覽器擴充功能偵測到的影音給 AI" (share media detected by the browser extension with AI) in Settings → AI integration, and the AI can list the media detected in your tabs and download one of them, even on sites that need a login: the extension adds the cookies when the download starts, so they never pass through the AI. The AI only sees page titles and the host and path of each address, never query strings, and incognito windows are not shared. This needs extension 1.1.0 or later (reload it on `chrome://extensions` after updating). Without it, use the extension's download button for sites that need a login.
-- Supports both MCP generations: 2025-03-26 to 2025-11-25, and 2026-07-28. Divebird must be running (it can stay in the system tray); turning on start at login is recommended.
+- Supports both MCP generations: 2025-03-26 to 2025-11-25, and 2026-07-28. Divebird must be running (it can stay in the system tray or the macOS menu bar); turning on start at login is recommended.
 
 ### Build it yourself
 
@@ -435,15 +463,17 @@ Divebird has a built-in [MCP](https://modelcontextprotocol.io/) (Model Context P
 | --- | --- | --- |
 | Windows | `powershell -ExecutionPolicy Bypass -File scripts\build.ps1` | `dist\Divebird\`, `dist\Divebird-<version>-windows-x64.zip` |
 | Linux | `./scripts/build.sh` | `dist/Divebird/`, `dist/Divebird-<version>-linux-<arch>.tar.gz` (e.g. `linux-x86_64`) |
+| macOS (Apple Silicon) | `./scripts/build.sh` | `dist/Divebird.app`, `dist/Divebird-<version>-macos-arm64.dmg` |
 
 - If the environment has not been set up yet, the build scripts run `scripts/setup.*` first.
 - A Linux build bundles system libraries from the build machine, so it only runs on distributions whose glibc is at least as new as the build machine's. To support more distributions, build on an older system.
+- The macOS version supports Apple Silicon only, so build it on an Apple Silicon Mac. The app is only ad-hoc signed, not notarized; the minimum macOS version comes from the bundled Qt (currently macOS 13).
 - Pushing a tag that starts with `v` (for example `v1.0.1`) makes GitHub Actions build and test on Windows and Ubuntu 22.04, then publish the packages to Releases.
 
 ### Development and testing
 
 ```bash
-./scripts/test.sh                                           # unit / integration tests on Linux
+./scripts/test.sh                                           # unit / integration tests on Linux / macOS
 powershell -ExecutionPolicy Bypass -File scripts\test.ps1   # unit / integration tests on Windows
 ```
 
@@ -454,7 +484,7 @@ powershell -ExecutionPolicy Bypass -File scripts\test.ps1   # unit / integration
   .runtime/uv/uv run --no-project --with playwright python tests/e2e/run_extension_e2e.py
   ```
 
-- Smoke test of a packaged build: `.venv/bin/python tests/smoke_package.py dist/Divebird/Divebird` (Windows: `.venv\Scripts\python.exe tests\smoke_package.py dist\Divebird\Divebird.exe`)
+- Smoke test of a packaged build: `.venv/bin/python tests/smoke_package.py dist/Divebird/Divebird` (macOS: `.venv/bin/python tests/smoke_package.py dist/Divebird.app/Contents/MacOS/Divebird`; Windows: `.venv\Scripts\python.exe tests\smoke_package.py dist\Divebird\Divebird.exe`)
 - Refresh the README screenshots (the About window and settings show the version, so run this before a release): `.venv/bin/python scripts/readme_screenshots.py` (Windows: `.venv\Scripts\python.exe scripts\readme_screenshots.py`)
 
 ### Architecture
@@ -470,7 +500,7 @@ flowchart LR
   end
   subgraph APP["Divebird desktop app (src/divebird/)"]
     S["server.py<br>local API 127.0.0.1:17890"]
-    G["gui/<br>PySide6 UI, system tray"]
+    G["gui/<br>PySide6 UI, system tray / menu bar"]
     M["engine/manager.py<br>queue, scheduling, resume"]
     H["engine/http_engine.py<br>multi-connection segments"]
     E["engine/media_engine.py<br>yt-dlp + FFmpeg"]
@@ -486,8 +516,10 @@ flowchart LR
 
 ### FAQ
 
-- **The extension says "未連線" (not connected)**: make sure the Divebird desktop app is running (it may be in the system tray) and that the app and the extension use the same port.
+- **The extension says "未連線" (not connected)**: make sure the Divebird desktop app is running (it may be in the system tray, or the menu bar on macOS) and that the app and the extension use the same port.
 - **A video fails to download**: video sites change often, so update Divebird to the [latest release](https://github.com/acer1204/Divebird/releases/latest), or try another source from the menu.
+- **macOS says Divebird can't be opened**: the app is not notarized by Apple. Go to System Settings → Privacy & Security and click "Open Anyway" (see the macOS notes under "Download a prebuilt package").
+- **Downloads fail on macOS with "Operation not permitted"**: macOS has not allowed Divebird to use the download folder. Allow Divebird in System Settings → Privacy & Security → Files & Folders, or choose another download folder in the settings.
 - **Security**: the local API listens on `127.0.0.1` only. Requests that carry an `Origin` header are accepted only from browser extensions, so ordinary web pages cannot call it. The cookies stored with a download are deleted once that download finishes; your browser's own cookies are not touched.
 
 ### Limitations

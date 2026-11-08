@@ -35,7 +35,7 @@ class _NullListener:
 
 
 # macOS 拒絕存取「下載項目」等受保護的資料夾時（使用者在系統詢問時按了「不允許」），錯誤是 EPERM
-MAC_FOLDER_HINT = ("（macOS 不允許 Divebird 存取這個資料夾：請到「系統設定 → 隱私權與安全性 → 檔案與資料夾」"
+MAC_FOLDER_HINT = ("（macOS 不允許 Divebird 存取這個資料夾：請到「系統設定 → 隱私權與安全性 → 檔案和檔案夾」"
                    "允許 Divebird，或在設定中改用其他下載資料夾）")
 
 

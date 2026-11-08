@@ -23,7 +23,15 @@ if [ "$(uname -s)" = Darwin ]; then
   ditto "$APP" "$STAGE/Divebird.app"
   ln -s /Applications "$STAGE/Applications"
   rm -f "$DMG"
-  hdiutil create -volname "Divebird $VERSION" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null
+  # GitHub Actions 的 macOS 主機偶爾會出現「hdiutil: create failed - Resource busy」：重試幾次
+  for attempt in 1 2 3; do
+    if hdiutil create -volname "Divebird $VERSION" -srcfolder "$STAGE" -fs HFS+ -format UDZO -ov "$DMG" >/dev/null; then
+      break
+    fi
+    [ "$attempt" = 3 ] && exit 1
+    echo "hdiutil 失敗，3 秒後重試…"
+    sleep 3
+  done
   echo
   echo "完成：$APP"
   echo "磁碟映像檔：$DMG"
