@@ -40,7 +40,7 @@ EOF
   # 讓 Launchpad、Spotlight 立即認得新的 App
   LSREGISTER=/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister
   [ -x "$LSREGISTER" ] && "$LSREGISTER" -f "$APP" >/dev/null 2>&1 || true
-  echo "已建立：$APP（可從 Launchpad 或 Spotlight 開啟 Divebird，也可以拖到 Dock）"
+  echo "已建立：${APP}（可從 Launchpad 或 Spotlight 開啟 Divebird，也可以拖到 Dock）"
   exit 0
 fi
 
