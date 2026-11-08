@@ -2,6 +2,7 @@
 # PyInstaller 打包設定（Windows / Linux / macOS 共用）：
 #   產出 dist/Divebird/（macOS 另外產出 dist/Divebird.app），內含 Python 執行環境、Qt、yt-dlp，
 #   以及 tools/ffmpeg、tools/deno，使用者電腦不需要安裝任何東西即可執行。
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -12,6 +13,11 @@ ROOT = Path(SPECPATH)
 IS_WIN = sys.platform == "win32"
 IS_MAC = sys.platform == "darwin"
 EXE_SUFFIX = ".exe" if IS_WIN else ""
+# macOS：設定環境變數 DIVEBIRD_SIGN_IDENTITY（例如 "Developer ID Application: 名字 (TEAMID)"）時，以 Developer ID
+# 憑證簽章每個程式，PyInstaller 會一併開啟公證要求的 hardened runtime 與安全時間戳記。沒有設定時是 ad-hoc 簽章：
+# 在自己的電腦上可以執行，分享給別人時，對方的 Mac 會擋下（可能顯示「已損毀」）。
+# 主程式在 hardened runtime 下不需要額外的權限；內附 deno 的權限由 scripts/build.sh 另外設定
+SIGN_IDENTITY = (os.environ.get("DIVEBIRD_SIGN_IDENTITY") or None) if IS_MAC else None
 
 # ---- 內附外部工具：ffmpeg（影音合併）、deno（yt-dlp 解析 YouTube 需要的 JS 執行環境）
 import imageio_ffmpeg
@@ -51,6 +57,7 @@ exe = EXE(
     console=False,
     icon=str(ROOT / "assets" / "divebird.ico") if IS_WIN else None,
     upx=False,
+    codesign_identity=SIGN_IDENTITY,
 )
 # ---- divebird-mcp：MCP 的 stdio 橋接（主控台程式），給只能以 stdio 啟動 MCP 伺服器的 AI 應用程式使用。
 #      只用到標準函式庫與 divebird 的設定、協定模組，不需要 Qt、yt-dlp 與網路套件
@@ -71,6 +78,7 @@ exe_mcp = EXE(
     console=True,
     icon=str(ROOT / "assets" / "divebird.ico") if IS_WIN else None,
     upx=False,
+    codesign_identity=SIGN_IDENTITY,      # COLLECT／BUNDLE 沿用最後一個 EXE 的簽章設定
 )
 coll = COLLECT(exe, a.binaries, a.datas, exe_mcp, b.binaries, b.datas, name="Divebird", upx=False)
 

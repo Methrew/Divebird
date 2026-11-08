@@ -15,6 +15,9 @@ from divebird.config import Settings
 from divebird.mcp import stdio
 from divebird.models import Status, Task
 
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
+import macos_check_signatures as signatures  # noqa: E402
+
 
 def test_data_dir_is_in_application_support(monkeypatch, tmp_path):
     monkeypatch.setattr(sys, "platform", "darwin")
@@ -217,3 +220,86 @@ def test_mac_menu_has_no_shortcuts_that_act_on_the_main_window(controller):
     assert not delete.isEnabled()
     close = next(a for a in menus["檔案"].actions() if a.text() == "關閉視窗")
     assert close.shortcut() == QKeySequence(QKeySequence.StandardKey.Close)
+
+
+# ---------------------------------------------------------------- Developer ID 簽章檢查（scripts/macos_check_signatures.py）
+DEVELOPER_ID = """Executable=/Applications/Divebird.app/Contents/MacOS/Divebird
+Identifier=io.github.acer1204.divebird
+Format=app bundle with Mach-O thin (arm64)
+CodeDirectory v=20500 size=85140 flags=0x10000(runtime) hashes=2654+7 location=embedded
+Signature size=9045
+Authority=Developer ID Application: Example (ABCDE12345)
+Authority=Developer ID Certification Authority
+Authority=Apple Root CA
+Timestamp=Nov 8, 2026 at 18:00:00
+Info.plist entries=24
+TeamIdentifier=ABCDE12345
+Runtime Version=15.0.0
+"""
+ADHOC = """Executable=/Users/me/Divebird/dist/Divebird.app/Contents/MacOS/Divebird
+CodeDirectory v=20400 size=85140 flags=0x2(adhoc) hashes=2654+3 location=embedded
+Signature=adhoc
+TeamIdentifier=not set
+"""
+
+
+def test_signature_info_parses_codesign_output():
+    assert signatures.signature_info(DEVELOPER_ID) == {
+        "team": "ABCDE12345", "authority": "Developer ID Application: Example (ABCDE12345)", "adhoc": False,
+        "runtime": True, "timestamp": True}
+    assert signatures.signature_info(ADHOC) == {"team": "not set", "authority": "", "adhoc": True, "runtime": False,
+                                                "timestamp": False}
+    assert signatures.signature_info(ADHOC.replace("0x2(adhoc)", "0x10002(adhoc,runtime)"))["runtime"]
+
+
+def test_signature_check_reports_every_problem(monkeypatch, tmp_path):
+    app = tmp_path / "Divebird.app"
+    outputs = {
+        "Contents/MacOS/Divebird": DEVELOPER_ID,
+        "Contents/MacOS/divebird-mcp": DEVELOPER_ID,
+        "Contents/Frameworks/tools/deno": DEVELOPER_ID.replace("ABCDE12345", "OTHERTEAM1"),
+        "Contents/Frameworks/libfoo.dylib": DEVELOPER_ID.replace("flags=0x10000(runtime)", "flags=0x0(none)"),
+        "Contents/Frameworks/libbar.so": DEVELOPER_ID.replace("Timestamp=Nov 8, 2026 at 18:00:00\n", ""),
+        "Contents/Frameworks/unsigned.dylib": None,
+        "Contents/Frameworks/libdev.dylib": DEVELOPER_ID.replace("Developer ID Application:", "Apple Development:"),
+    }
+    for rel in outputs:
+        (app / rel).parent.mkdir(parents=True, exist_ok=True)
+        (app / rel).write_bytes(b"\xcf\xfa\xed\xfe" + b"\0" * 28)       # 64 位元 Mach-O 的開頭
+    (app / "Contents" / "Resources").mkdir()
+    (app / "Contents" / "Resources" / "README.md").write_text("不是程式", encoding="utf-8")
+    if os.name != "nt":         # 符號連結（PyInstaller 的 Frameworks／Resources 互相連結）不重複檢查
+        (app / "Contents" / "Frameworks" / "link.dylib").symlink_to(app / "Contents" / "Frameworks" / "libfoo.dylib")
+
+    def fake_codesign(cmd, **kwargs):
+        target = Path(cmd[-1])
+        out = DEVELOPER_ID if target == app else outputs[target.relative_to(app).as_posix()]
+        return subprocess.CompletedProcess(cmd, 0 if out else 1, "", out or "code object is not signed at all")
+
+    monkeypatch.setattr(signatures.subprocess, "run", fake_codesign)
+    assert sorted(signatures.check(app)) == sorted([
+        "Contents/Frameworks/tools/deno：開發者不同（OTHERTEAM1，應為 ABCDE12345）",
+        "Contents/Frameworks/libfoo.dylib：沒有開啟 hardened runtime",
+        "Contents/Frameworks/libbar.so：沒有安全時間戳記",
+        "Contents/Frameworks/unsigned.dylib：沒有簽章",
+        "Contents/Frameworks/libdev.dylib：憑證不是「Developer ID Application」（Apple Development: Example (ABCDE12345)）",
+    ])
+
+
+def test_signature_check_rejects_adhoc_app(monkeypatch, tmp_path):
+    app = tmp_path / "Divebird.app"
+    (app / "Contents").mkdir(parents=True)
+    monkeypatch.setattr(signatures.subprocess, "run", lambda cmd, **kw: subprocess.CompletedProcess(cmd, 0, "", ADHOC))
+    assert signatures.check(app) == ["Divebird.app 沒有以 Developer ID 簽章"]
+
+
+def test_signature_check_rejects_other_certificate_kinds(monkeypatch, tmp_path):
+    """例如 Apple Development 憑證：簽得出來，但要等上傳後才會被公證拒絕，要在打包時就擋下。"""
+    app = tmp_path / "Divebird.app"
+    (app / "Contents").mkdir(parents=True)
+    development = DEVELOPER_ID.replace("Developer ID Application:", "Apple Development:")
+    monkeypatch.setattr(signatures.subprocess, "run",
+                        lambda cmd, **kw: subprocess.CompletedProcess(cmd, 0, "", development))
+    assert signatures.check(app) == ["Divebird.app 的憑證不是「Developer ID Application」"
+                                     "（實際為 Apple Development: Example (ABCDE12345)），Apple 公證不會接受"]
+
