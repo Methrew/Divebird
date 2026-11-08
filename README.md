@@ -213,14 +213,14 @@ Divebird 內建 [MCP](https://modelcontextprotocol.io/)（Model Context Protocol
 - 尚未建立執行環境時，打包腳本會先自動執行 `scripts/setup.*`。
 - Linux 打包會一併包進建置機器上的系統函式庫，打包出的程式只能在 glibc 版本不低於建置機器的發行版上執行；若要支援更多發行版，請在較舊的系統上建置。
 - macOS 版只支援 Apple Silicon，請在 Apple Silicon 的 Mac 上打包；最低系統版本取自內附的 Qt（目前為 macOS 13）。預設只有 ad-hoc 簽章：在自己的 Mac 上可以使用，但分享給別人時，對方的 Mac 會擋下（可能顯示「已損毀」）。
-- **macOS 以 Developer ID 簽章並送 Apple 公證**（要分享給別人時；需要付費的 Apple 開發者帳號）：先在 Xcode 的「設定 → Accounts → Manage Certificates」按「+」建立「Developer ID Application」憑證（只有帳號持有人能建立），再到 [appleid.apple.com](https://appleid.apple.com) 建立 App 專用密碼，執行下面第一行指令並依提示輸入這組密碼（只會存在鑰匙圈）。之後打包時設定憑證名稱（可用 `security find-identity -v -p codesigning` 查詢）與公證設定：
+- **macOS 以 Developer ID 簽章並送 Apple 公證**（要分享給別人時；需要付費的 Apple 開發者帳號）：先用帳號持有人的 Apple 帳號登入 Xcode，在「Settings → Apple Accounts（舊版 Xcode 為 Accounts）→ Manage Certificates」按「+」建立「Developer ID Application」憑證（只有帳號持有人能建立；也可以在開發者網站的 Certificates 頁面上傳 CSR 建立，中繼憑證選「G2 Sub-CA」）。再到 [account.apple.com](https://account.apple.com) 的「登入與安全 → App 專用密碼」建立一組密碼，執行下面第一行指令並依提示輸入這組密碼（只會存在鑰匙圈）。之後打包時設定憑證名稱（可用 `security find-identity -p codesigning` 查詢）與公證設定：
 
   ```bash
   xcrun notarytool store-credentials divebird-notary --apple-id <Apple ID> --team-id <Team ID>   # 只需要一次
   DIVEBIRD_SIGN_IDENTITY="Developer ID Application: 名字 (TEAMID)" DIVEBIRD_NOTARY_PROFILE=divebird-notary ./scripts/build.sh
   ```
 
-  打包腳本會以 hardened runtime 簽章所有程式（內附的 deno 另外給它需要的 JIT 權限）、檢查每個程式的簽章、送 Apple 公證（約需數分鐘），並把公證結果附在 App 與 .dmg 上。這樣的 .dmg 分享給別人，對方只會看到一般的「從網際網路下載」確認視窗。只設定 `DIVEBIRD_SIGN_IDENTITY` 時只簽章、不公證。
+  打包腳本會以 hardened runtime 簽章所有程式（內附的 deno 另外給它需要的 JIT 權限）、檢查每個程式的簽章、送 Apple 公證（約需數分鐘），並把公證結果附在 App 與 .dmg 上。這樣的 .dmg 分享給別人，對方只會看到一般的「從網際網路下載」確認視窗。只設定 `DIVEBIRD_SIGN_IDENTITY` 時只簽章、不公證。打包前會先試簽一個小檔案；第一次使用這個憑證時，系統可能會詢問是否允許 codesign 使用鑰匙圈裡的金鑰，請輸入 Mac 的登入密碼並按「永遠允許」，否則打包時每個檔案都會再問一次。
 - 推送 `v` 開頭的標籤（例如 `v1.0.1`）時，GitHub Actions 會在 Windows、Ubuntu 22.04 與 macOS（Apple Silicon）上建置、測試，並自動發佈到 Releases。
 
 ### 開發與測試
@@ -476,14 +476,14 @@ Divebird has a built-in [MCP](https://modelcontextprotocol.io/) (Model Context P
 - If the environment has not been set up yet, the build scripts run `scripts/setup.*` first.
 - A Linux build bundles system libraries from the build machine, so it only runs on distributions whose glibc is at least as new as the build machine's. To support more distributions, build on an older system.
 - The macOS version supports Apple Silicon only, so build it on an Apple Silicon Mac; the minimum macOS version comes from the bundled Qt (currently macOS 13). By default the app is only ad-hoc signed: it runs on your own Mac, but other people's Macs block it when you share it (they may see "is damaged").
-- **Sign with a Developer ID and notarize with Apple on macOS** (to share the app; needs a paid Apple Developer account): create a "Developer ID Application" certificate in Xcode → Settings → Accounts → Manage Certificates → "+" (only the Account Holder can), create an app-specific password at [appleid.apple.com](https://appleid.apple.com), and run the first command below, entering that password when asked (it is stored only in your keychain). Then build with the certificate name (see `security find-identity -v -p codesigning`) and the notary profile:
+- **Sign with a Developer ID and notarize with Apple on macOS** (to share the app; needs a paid Apple Developer account): sign in to Xcode with the Account Holder's Apple Account and create a "Developer ID Application" certificate in Settings → Apple Accounts (Accounts in older Xcode) → Manage Certificates → "+" (only the Account Holder can; you can also upload a CSR on the Certificates page of the developer website and pick the "G2 Sub-CA"). Then create an app-specific password at [account.apple.com](https://account.apple.com) (Sign-In and Security → App-Specific Passwords), and run the first command below, entering that password when asked (it is stored only in your keychain). Then build with the certificate name (see `security find-identity -p codesigning`) and the notary profile:
 
   ```bash
   xcrun notarytool store-credentials divebird-notary --apple-id <Apple ID> --team-id <Team ID>   # once
   DIVEBIRD_SIGN_IDENTITY="Developer ID Application: Your Name (TEAMID)" DIVEBIRD_NOTARY_PROFILE=divebird-notary ./scripts/build.sh
   ```
 
-  The build script signs every program with the hardened runtime (the bundled deno gets the JIT entitlements it needs), checks every signature, notarizes with Apple (takes a few minutes), and staples the result to the app and the .dmg. People you share that .dmg with only see the usual "downloaded from the internet" confirmation. With only `DIVEBIRD_SIGN_IDENTITY` set, the build is signed but not notarized.
+  The build script signs every program with the hardened runtime (the bundled deno gets the JIT entitlement it needs), checks every signature, notarizes with Apple (takes a few minutes), and staples the result to the app and the .dmg. People you share that .dmg with only see the usual "downloaded from the internet" confirmation. With only `DIVEBIRD_SIGN_IDENTITY` set, the build is signed but not notarized. Before building, the script test-signs a small file; the first time the certificate is used, macOS may ask whether codesign can use the key in your keychain: enter your login password and click Always Allow, or it will ask again for every file during the build.
 - Pushing a tag that starts with `v` (for example `v1.0.1`) makes GitHub Actions build and test on Windows, Ubuntu 22.04 and macOS (Apple Silicon), then publish the packages to Releases.
 
 ### Development and testing

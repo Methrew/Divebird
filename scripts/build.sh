@@ -20,9 +20,19 @@ if [ "$(uname -s)" = Darwin ]; then
     echo "公證需要 Developer ID 簽章：請同時設定 DIVEBIRD_SIGN_IDENTITY" >&2
     exit 1
   fi
-  if [ -n "$SIGN_ID" ] && ! security find-identity -v -p codesigning | grep -qF -- "$SIGN_ID"; then
-    echo "鑰匙圈裡找不到簽章憑證「${SIGN_ID}」（列出可用的憑證：security find-identity -v -p codesigning）" >&2
-    exit 1
+  if [ -n "$SIGN_ID" ]; then
+    # 先試簽一個小檔案：憑證名稱打錯、憑證不受信任、時間戳記伺服器連不上，打包前就會知道。
+    # 第一次用這個憑證時，系統可能會詢問是否允許 codesign 使用鑰匙圈裡的私密金鑰：輸入 Mac 的登入密碼並按「永遠允許」，
+    # 打包時才不會每個檔案都再問一次。
+    # （不用 security find-identity -v 檢查：它看不到系統內建的 Apple 中繼憑證，可能把可以用的憑證列為無效）
+    PROBE="$(mktemp -d)"
+    cp /usr/bin/true "$PROBE/probe"
+    if ! codesign --force --sign "$SIGN_ID" --options runtime --timestamp "$PROBE/probe"; then
+      rm -rf "$PROBE"
+      echo "無法用「${SIGN_ID}」簽章（列出鑰匙圈裡的簽章憑證：security find-identity -p codesigning）" >&2
+      exit 1
+    fi
+    rm -rf "$PROBE"
   fi
 fi
 
