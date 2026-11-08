@@ -1,5 +1,6 @@
 import os
 import socket
+import sys
 import threading
 import time
 
@@ -212,11 +213,15 @@ def test_running_legacy_app_is_detected(monkeypatch, tmp_path):
 
     httpd = ThreadingHTTPServer(("127.0.0.1", 0), Legacy)
     threading.Thread(target=httpd.serve_forever, daemon=True).start()
-    legacy_dir = tmp_path / ("OpenDM" if os.name == "nt" else "opendm")
-    legacy_dir.mkdir()
+    if sys.platform == "darwin":
+        legacy_dir = tmp_path / "Library" / "Application Support" / "OpenDM"
+    else:
+        legacy_dir = tmp_path / ("OpenDM" if os.name == "nt" else "opendm")
+    legacy_dir.mkdir(parents=True)
     (legacy_dir / "settings.json").write_text(_json.dumps({"port": httpd.server_address[1]}), encoding="utf-8")
     monkeypatch.setenv("APPDATA", str(tmp_path))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("HOME", str(tmp_path))     # macOS：~/Library/Application Support
     try:
         assert gui_app._running_legacy_app() == "OpenDM"
     finally:

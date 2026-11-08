@@ -3,6 +3,7 @@
 資料目錄規則：
 - 可攜模式：程式目錄（或打包後執行檔目錄）下存在 ``portable`` 檔案時，資料存放於 ``<程式目錄>/data``
 - Windows：%APPDATA%\\Divebird
+- macOS：~/Library/Application Support/Divebird
 - Linux：$XDG_CONFIG_HOME/divebird（預設 ~/.config/divebird）
 """
 from __future__ import annotations
@@ -17,6 +18,9 @@ from pathlib import Path
 
 APP_NAME = "Divebird"
 DEFAULT_PORT = 17890
+IS_MAC = sys.platform == "darwin"
+MAC_BUNDLE_ID = "io.github.acer1204.divebird"     # macOS 的 App 識別碼（Divebird.app、登入自動啟動項目共用）
+TRAY_NAME = "選單列" if IS_MAC else "系統匣"      # 介面文字：常駐圖示所在的位置
 
 
 def app_dir() -> Path:
@@ -31,6 +35,30 @@ def bundle_dir() -> Path:
     return Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent))
 
 
+def running_from_temporary_location() -> bool:
+    """macOS：直接從磁碟映像檔（.dmg）或「下載項目」開啟的 Divebird.app，系統會讓它在唯讀的暫存位置執行
+    （App Translocation），這時程式所在的路徑之後就會失效。"""
+    if sys.platform != "darwin" or not getattr(sys, "frozen", False):
+        return False
+    if "/AppTranslocation/" in sys.executable:
+        return True
+    try:
+        return bool(os.statvfs(sys.executable).f_flag & os.ST_RDONLY)     # 掛載的 .dmg 是唯讀的
+    except (OSError, AttributeError):
+        return False
+
+
+def extension_dir() -> Path | None:
+    """隨附的 Chrome 擴充功能資料夾（讓使用者在 Chrome「載入未封裝項目」）；找不到時回傳 None。"""
+    if getattr(sys, "frozen", False):
+        candidates = [app_dir() / "extension"]       # Windows／Linux 免安裝版：程式旁邊
+        if IS_MAC:     # Divebird.app/Contents/Resources/extension（app_dir() 是 Contents/MacOS）
+            candidates.insert(0, app_dir().parent / "Resources" / "extension")
+    else:
+        candidates = [Path(__file__).resolve().parents[2] / "extension"]     # 原始碼：專案根目錄
+    return next((p for p in candidates if (p / "manifest.json").is_file()), None)
+
+
 LEGACY_NAMES = ("OpenDM",)   # 改名前的程式名稱：首次啟動時自動搬移舊資料
 
 
@@ -38,6 +66,9 @@ def _user_data_locations() -> tuple[Path, list[Path]]:
     """（非可攜模式）新資料夾路徑，以及改名前舊名稱的資料夾路徑。"""
     if sys.platform == "win32":
         parent = Path(os.environ.get("APPDATA") or Path.home() / "AppData" / "Roaming")
+        return parent / APP_NAME, [parent / n for n in LEGACY_NAMES]
+    if IS_MAC:
+        parent = Path.home() / "Library" / "Application Support"
         return parent / APP_NAME, [parent / n for n in LEGACY_NAMES]
     parent = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config")
     return parent / APP_NAME.lower(), [parent / n.lower() for n in LEGACY_NAMES]
@@ -91,7 +122,7 @@ def _migrate_legacy(path: Path, legacy: list[Path]) -> None:
 
 
 def default_download_dir() -> Path:
-    if sys.platform != "win32":
+    if sys.platform != "win32" and not IS_MAC:
         # 優先讀取 XDG 使用者目錄設定（中文 Linux 桌面的下載資料夾可能是「下載」）
         try:
             cfg = Path(os.environ.get("XDG_CONFIG_HOME") or Path.home() / ".config") / "user-dirs.dirs"

@@ -1,15 +1,16 @@
 from __future__ import annotations
 
+import os
 import sys
 import threading
 
 import requests
-from PySide6.QtCore import QObject, Qt, Signal
+from PySide6.QtCore import QEvent, QLibraryInfo, QObject, Qt, QTimer, QTranslator, Signal
 from PySide6.QtGui import QAction, QGuiApplication, QPalette
 from PySide6.QtWidgets import QApplication, QMenu, QMessageBox, QSystemTrayIcon
 
 from .. import autostart
-from ..config import APP_NAME, LEGACY_NAMES, Settings, legacy_ports
+from ..config import APP_NAME, IS_MAC, LEGACY_NAMES, Settings, legacy_ports
 from ..engine.manager import DownloadManager
 from ..engine.media_engine import _site_extractors
 from ..intake import task_from_payload
@@ -97,6 +98,21 @@ def stylesheet(dark: bool) -> str:
     """
 
 
+class _QuitWatcher(QObject):
+    """macOS：Dock 的「結束」、應用程式選單的「結束」（⌘Q）、登出與關機，都是由系統送 Quit 事件給程式，
+    不會經過 Controller.quit()。沒有這個處理時，主視窗會被當成一般的關閉：縮到選單列、跳出「仍在背景執行」
+    的通知，接著程式就結束了，下載沒有先暫停、儲存。這裡先做跟「結束 Divebird」相同的收尾。"""
+
+    def __init__(self, ctl: "Controller"):
+        super().__init__(ctl)
+        self.ctl = ctl
+
+    def eventFilter(self, obj, event):  # noqa: N802
+        if obj is self.ctl.app and event.type() == QEvent.Type.Quit:
+            self.ctl.prepare_quit()
+        return False
+
+
 class Controller(QObject):
     def __init__(self, app: QApplication, settings: Settings):
         super().__init__()
@@ -108,6 +124,7 @@ class Controller(QObject):
         self._dialogs: set[NewDownloadDialog] = set()
         self.tray: QSystemTrayIcon | None = None
         self._notified_task = ""      # 最近一則通知對應的下載（點通知時選取它）
+        self._closing = False
 
         # AI 整合（MCP）：工具在 API 執行緒執行，需要介面的動作（確認視窗、通知）透過訊號回到 GUI 執行緒
         self.mcp = McpService(settings, backend=self)
@@ -124,7 +141,16 @@ class Controller(QObject):
         self.bridge.finished.connect(self._on_finished)
 
         self.window = MainWindow(self)
+        # 系統在執行中切換淺色／深色外觀（例如 macOS 的「自動」外觀在日落時切換）：重新著色
+        QGuiApplication.styleHints().colorSchemeChanged.connect(self._color_scheme_changed)
         self._setup_tray()
+        if IS_MAC:
+            self._quit_watcher = _QuitWatcher(self)
+            app.installEventFilter(self._quit_watcher)
+            # 主視窗關著時點 Dock 圖示：Qt 會送出「程式被啟用」。啟動時 Qt 也會把程式帶到前景一次，
+            # 所以等事件迴圈開始一秒後才開始處理，--minimized 啟動時才不會自己打開主視窗
+            QTimer.singleShot(0, lambda: QTimer.singleShot(
+                1000, lambda: app.applicationStateChanged.connect(self._app_state_changed)))
         # 預先載入 yt-dlp 的網站清單，讓第一次判斷網址類型時不會卡頓
         threading.Thread(target=_site_extractors, daemon=True).start()
 
@@ -202,7 +228,7 @@ class Controller(QObject):
         self.tray = None
         if not QSystemTrayIcon.isSystemTrayAvailable():
             return
-        tray = QSystemTrayIcon(icons.app_icon(), self)
+        tray = QSystemTrayIcon(icons.tray_icon(), self)
         menu = QMenu()
         a_show = QAction("顯示主視窗", menu)
         a_show.triggered.connect(self.window.bring_to_front)
@@ -214,9 +240,10 @@ class Controller(QObject):
         menu.addAction("關於 Divebird", self.window.open_about)
         menu.addAction("結束 Divebird", self.quit)
         tray.setContextMenu(menu)
-        tray.activated.connect(lambda reason: reason in (QSystemTrayIcon.ActivationReason.Trigger,
-                                                         QSystemTrayIcon.ActivationReason.DoubleClick)
-                               and self.window.bring_to_front())
+        if not IS_MAC:      # macOS 點選單列圖示是打開選單（第一項就是「顯示主視窗」），不另外叫出視窗
+            tray.activated.connect(lambda reason: reason in (QSystemTrayIcon.ActivationReason.Trigger,
+                                                             QSystemTrayIcon.ActivationReason.DoubleClick)
+                                   and self.window.bring_to_front())
         tray.messageClicked.connect(self._notification_clicked)
         tray.setToolTip(APP_NAME)
         tray.show()
@@ -243,7 +270,31 @@ class Controller(QObject):
         if self.settings.notify_on_complete:
             self.notify("下載完成", t.filename, t.id)
 
-    def quit(self):
+    def _color_scheme_changed(self, *_args) -> None:
+        # Qt 發出這個訊號時，元件的調色盤可能還沒換成新的外觀（樣式表裡的 palette(base) 會解析成舊的顏色），
+        # 等這一輪事件處理完再重新套用
+        QTimer.singleShot(0, self._apply_color_scheme)
+
+    def _apply_color_scheme(self) -> None:
+        dark = is_dark()
+        if dark == self.dark:
+            return
+        self.dark = dark
+        self.app.setStyleSheet(stylesheet(dark))
+        self.window.apply_theme(dark)
+
+    def _app_state_changed(self, state) -> None:
+        """macOS：沒有任何視窗開著時點 Dock 圖示（或再開一次 Divebird.app），打開主視窗。"""
+        if state != Qt.ApplicationState.ApplicationActive or self._closing:
+            return
+        if not any(w.isVisible() for w in QApplication.topLevelWidgets() if w.isWindow()):
+            self.window.bring_to_front()
+
+    def prepare_quit(self) -> None:
+        """結束前的收尾（只做一次）：關閉對話框、暫停並儲存下載、停止本機 API。"""
+        if self._closing:
+            return
+        self._closing = True
         self.window._quitting = True
         for d in list(self._dialogs):
             d.close()
@@ -252,6 +303,11 @@ class Controller(QObject):
             self.server.stop()
         if self.tray:
             self.tray.hide()
+
+    def quit(self):
+        if self._closing:       # 已在結束流程中（主視窗關閉時會再呼叫一次）
+            return
+        self.prepare_quit()
         self.app.quit()
 
 
@@ -321,9 +377,20 @@ def main(argv: list[str] | None = None) -> int:
     except OSError:
         pass
 
+    if IS_MAC and "--minimized" in argv and getattr(sys, "frozen", False):
+        # Divebird.app 在背景啟動（登入時、AI 工具經由 divebird-mcp 啟動）：不要讓 Qt 在啟動時把程式切到前景、
+        # 搶走使用者正在用的 App 的鍵盤焦點。只限 .app：從原始碼執行時，Qt 要靠這一步把 python 轉成一般的 App
+        os.environ.setdefault("QT_MAC_DISABLE_FOREGROUND_APPLICATION_TRANSFORM", "1")
     QApplication.setApplicationName(APP_NAME)
     QApplication.setOrganizationName(APP_NAME)
-    app = QApplication(argv)
+    # macOS：從原始碼執行（沒有 Divebird.app）時，Qt 以 argv[0] 的檔名當作應用程式選單裡的名稱
+    # （python -m divebird 會變成「結束 __main__」），改成 Divebird；Linux 的 argv[0] 會影響 WM_CLASS，不更動
+    app = QApplication([APP_NAME, *argv[1:]] if IS_MAC else argv)
+    if IS_MAC:
+        # macOS 的應用程式選單（關於、偏好設定、隱藏、結束 Divebird）由 Qt 產生：載入 Qt 的繁體中文翻譯
+        translator = QTranslator(app)
+        if translator.load("qtbase_zh_TW", QLibraryInfo.path(QLibraryInfo.LibraryPath.TranslationsPath)):
+            app.installTranslator(translator)
     app.setStyle("Fusion")
     app.setWindowIcon(icons.app_icon())
     app.setQuitOnLastWindowClosed(False)

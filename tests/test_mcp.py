@@ -99,6 +99,7 @@ class Mcp:
 def env(tmp_path, monkeypatch):
     monkeypatch.setenv("APPDATA", str(tmp_path / "appdata"))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "appdata"))
+    monkeypatch.setenv("HOME", str(tmp_path / "appdata"))     # macOS：~/Library/Application Support
     settings = Settings(download_dir=str(tmp_path / "dl"), port=_free_port(), mcp_enabled=True,
                         mcp_confirm="never", mcp_allow_private=True)    # 測試伺服器在 127.0.0.1
     backend = FakeBackend(settings, store=tmp_path / "tasks.json")
@@ -217,6 +218,7 @@ def test_transport_security(env):
 def test_token_file(tmp_path, monkeypatch):
     monkeypatch.setenv("APPDATA", str(tmp_path))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("HOME", str(tmp_path))     # macOS：~/Library/Application Support
     first = mcp_token.ensure()
     assert len(first) >= 32 and mcp_token.ensure() == first
     second = mcp_token.reset()
@@ -444,6 +446,7 @@ def test_gui_confirmation_dialog(tmp_path, monkeypatch, server):
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     monkeypatch.setenv("APPDATA", str(tmp_path / "appdata"))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "appdata"))
+    monkeypatch.setenv("HOME", str(tmp_path / "appdata"))     # macOS：~/Library/Application Support
     from PySide6.QtWidgets import QApplication
 
     from divebird.gui.app import Controller
@@ -495,6 +498,7 @@ def test_settings_dialog_ai_tab(tmp_path, monkeypatch):
     os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
     monkeypatch.setenv("APPDATA", str(tmp_path))
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("HOME", str(tmp_path))     # macOS：~/Library/Application Support
     from PySide6.QtWidgets import QApplication
 
     from divebird.gui.dialogs import SettingsDialog

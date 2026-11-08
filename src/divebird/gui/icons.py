@@ -1,6 +1,7 @@
 """內嵌 SVG 圖示（線條風格），依目前主題顏色即時著色。"""
 from __future__ import annotations
 
+import sys
 from functools import lru_cache
 
 from PySide6.QtCore import QByteArray, QRectF, Qt
@@ -126,6 +127,30 @@ def app_icon() -> QIcon:
     icon_ = QIcon()
     for s in (16, 24, 32, 48, 64, 128, 256):
         icon_.addPixmap(QPixmap.fromImage(render_svg(app_svg_for(s), s)))
+    return icon_
+
+
+# macOS 選單列圖示：只有燕子＋箭頭的黑色輪廓，設為「範本圖片」（isMask），系統會依淺色／深色選單列自動著色
+TRAY_SVG_MAC = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="7 8 50 50">
+<g fill="#000000">
+<path d="M29.6 37.6 C21 36.2 14 29.6 13 17.6 C16 21.8 22.8 25.3 30 25.8 Z"/>
+<path d="M34.4 37.6 C43 36.2 50 29.6 51 17.6 C48 21.8 41.2 25.3 34 25.8 Z"/>
+<path d="M28 40 L28 21.5 C28 16.8 27.8 13.4 27 9.8 C29.3 10.4 31 11.3 32 12.8 C33 11.3 34.7 10.4 37 9.8 C36.2 13.4 36 16.8 36 21.5 L36 40 Z"/>
+<path d="M28 35 C27.6 36.6 27.3 38.4 27.3 40 C27.3 41.3 28.1 42.1 28.9 43 L32 48.5 L35.1 43 C35.9 42.1 36.7 41.3 36.7 40 C36.7 38.4 36.4 36.6 36 35 Z"/>
+<rect x="16" y="52" width="32" height="4" rx="2"/>
+</g>
+</svg>"""
+
+
+@lru_cache(maxsize=1)
+def tray_icon() -> QIcon:
+    """系統匣／選單列圖示：macOS 用單色範本圖片（與其他選單列圖示一致），其他平台用彩色程式圖示。"""
+    if sys.platform != "darwin":
+        return app_icon()
+    icon_ = QIcon()
+    for s in (16, 18, 32, 36, 64):
+        icon_.addPixmap(QPixmap.fromImage(render_svg(TRAY_SVG_MAC.encode(), s)))
+    icon_.setIsMask(True)
     return icon_
 
 

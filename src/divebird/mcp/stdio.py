@@ -47,7 +47,14 @@ def launch_command() -> list[str] | None:
     """以 --minimized 在背景啟動 Divebird 的指令（找不到主程式時回傳 None）。"""
     if getattr(sys, "frozen", False):
         exe = Path(sys.executable).with_name("Divebird.exe" if os.name == "nt" else "Divebird")
-        return [str(exe), "--minimized"] if exe.is_file() else None
+        if not exe.is_file():
+            return None
+        bundle = exe.parent.parent.parent          # macOS：Divebird.app/Contents/MacOS/Divebird
+        if sys.platform == "darwin" and bundle.suffix == ".app":
+            # 經由 LaunchServices 啟動，Divebird 才是獨立的 App：不會被當成 AI 應用程式的子程序，
+            # 存取「下載項目」等資料夾的權限詢問也會以 Divebird 的名義出現
+            return ["/usr/bin/open", "-g", "-a", str(bundle), "--args", "--minimized"]
+        return [str(exe), "--minimized"]
     if os.name == "nt":
         root = Path(__file__).resolve().parents[3]
         launcher = root / "Divebird.exe"           # 從原始碼執行時的啟動程式（會先檢查並更新執行環境）

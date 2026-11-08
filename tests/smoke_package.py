@@ -1,6 +1,7 @@
-"""打包版煙霧測試（Windows / Linux 通用，CI 也會執行）。
+"""打包版煙霧測試（Windows / Linux / macOS 通用，CI 也會執行）。
 
     .venv/bin/python tests/smoke_package.py dist/Divebird/Divebird
+    .venv/bin/python tests/smoke_package.py dist/Divebird.app/Contents/MacOS/Divebird     （macOS）
 
 以乾淨的設定目錄、離屏模式啟動打包好的 Divebird，透過本機 API 送出：
 1. 一般檔案（多連線分段下載）
@@ -88,7 +89,10 @@ def main() -> int:
     site = Site(work / "site")
 
     cfg_root = work / "config"
-    cfg = cfg_root / ("Divebird" if os.name == "nt" else "divebird")
+    if sys.platform == "darwin":     # macOS 的設定資料夾在家目錄底下：以 HOME 導到暫存目錄
+        cfg = cfg_root / "Library" / "Application Support" / "Divebird"
+    else:
+        cfg = cfg_root / ("Divebird" if os.name == "nt" else "divebird")
     cfg.mkdir(parents=True)
     dl = work / "downloads"
     (cfg / "settings.json").write_text(json.dumps({
@@ -96,6 +100,8 @@ def main() -> int:
         "mcp_enabled": True, "mcp_confirm": "never",
     }), encoding="utf-8")
     env = dict(os.environ, APPDATA=str(cfg_root), XDG_CONFIG_HOME=str(cfg_root), QT_QPA_PLATFORM="offscreen")
+    if sys.platform == "darwin":
+        env["HOME"] = str(cfg_root)
     proc = subprocess.Popen([str(app)], env=env)
     results = {}
     try:

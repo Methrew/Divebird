@@ -15,13 +15,13 @@ from PySide6.QtWidgets import (
 )
 
 from .. import __version__, about, autostart
-from ..config import Settings
+from ..config import IS_MAC, TRAY_NAME, Settings, extension_dir, running_from_temporary_location
 from ..engine.http_engine import make_session, probe
 from ..engine.media_engine import AUDIO_BEST, AUDIO_MP3, extract_info, format_choices
 from ..engine.tools import deno_path, ffmpeg_path
 from ..mcp import token as mcp_token
 from ..models import Kind, Task
-from ..utils import human_size, human_time, sanitize_filename
+from ..utils import human_size, human_time, open_path, sanitize_filename
 from . import icons
 
 class _Signals(QObject):
@@ -362,15 +362,22 @@ class SettingsDialog(QDialog):
 
         g4 = QGroupBox("介面")
         v4 = QVBoxLayout(g4)
-        self.tray = QCheckBox("關閉視窗時縮小到系統匣，繼續在背景下載")
+        self.tray = QCheckBox(f"關閉視窗時縮小到{TRAY_NAME}，繼續在背景下載")
         self.tray.setChecked(settings.minimize_to_tray)
         self.notify = QCheckBox("下載完成時顯示通知")
         self.notify.setChecked(settings.notify_on_complete)
-        self.autostart = QCheckBox("登入系統時自動啟動（縮小到系統匣）")
+        self.autostart = QCheckBox(f"登入系統時自動啟動（縮小到{TRAY_NAME}）")
         self.autostart.setChecked(autostart.is_enabled())
         v4.addWidget(self.tray)
         v4.addWidget(self.notify)
         v4.addWidget(self.autostart)
+        reason = autostart.unavailable_reason()
+        if reason:      # macOS：從磁碟映像檔或「下載項目」直接開啟時，系統讓 App 在暫存位置執行
+            self.autostart.setEnabled(False)
+            note = QLabel(reason)
+            note.setWordWrap(True)
+            note.setStyleSheet("color: palette(placeholder-text);")
+            v4.addWidget(note)
         gv.addWidget(g4)
         gv.addStretch(1)
         tabs.addTab(general, "一般")
@@ -389,6 +396,28 @@ class SettingsDialog(QDialog):
         self.show_dialog = QCheckBox("收到瀏覽器傳來的下載時，顯示確認視窗")
         self.show_dialog.setChecked(settings.show_dialog)
         f2.addRow("", self.show_dialog)
+        ext = extension_dir()
+        if ext:     # 擴充功能要從這個資料夾手動載入；macOS 版放在 Divebird.app 裡面，不容易找到
+            row = QHBoxLayout()
+            show = QPushButton("在 Finder 中顯示" if IS_MAC else "開啟所在資料夾")
+            show.clicked.connect(lambda: open_path(ext, select=True))
+            copy_path = QPushButton("複製路徑")
+            copy_path.clicked.connect(lambda: self._copy(str(ext), copy_path))
+            row.addWidget(show)
+            row.addWidget(copy_path)
+            row.addStretch(1)
+            f2.addRow("Chrome 擴充功能", row)
+            how = ("在 chrome://extensions 打開「開發人員模式」，按「載入未封裝項目」，"
+                   + ("按 ⌘⇧G 貼上路徑，選擇這個資料夾。" if IS_MAC else "選擇這個資料夾。"))
+            if running_from_temporary_location():   # 從 .dmg 或「下載項目」直接開啟：這個路徑之後會失效
+                show.setEnabled(False)
+                copy_path.setEnabled(False)
+                how = ("Divebird 正從磁碟映像檔或暫存位置執行，這個路徑之後會失效。"
+                       "請先把 Divebird 拖到「應用程式」資料夾，再從那裡開啟。")
+            ext_hint = QLabel(how)
+            ext_hint.setWordWrap(True)
+            ext_hint.setStyleSheet("color: palette(placeholder-text);")
+            f2.addRow("", ext_hint)
         bv.addWidget(g2)
         bv.addStretch(1)
         tabs.addTab(browser, "瀏覽器整合")
@@ -488,7 +517,7 @@ class SettingsDialog(QDialog):
         row.addStretch(1)
         fc.addRow("複製設定", row)
         hint = QLabel("AI 工具連線時要帶上 Authorization: Bearer <存取權杖>。權杖等同密碼，請勿分享。"
-                      "Divebird 需要保持執行（可縮小在系統匣），AI 工具才連得上。")
+                      f"Divebird 需要保持執行（可縮小在{TRAY_NAME}），AI 工具才連得上。")
         hint.setWordWrap(True)
         hint.setStyleSheet("color: palette(placeholder-text);")
         fc.addRow("", hint)
